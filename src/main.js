@@ -19,6 +19,9 @@ import './errorLog' // error log
 import './permission' // permission control
 import './mock' // simulation data
 import * as filters from './filters' // global filters
+import TreeTable from '@weilan/el-tree-table'
+
+Vue.use(TreeTable)
 
 Vue.use(Element, {
   size: Cookies.get('size') || 'medium', // set element-ui default size

@@ -56,7 +56,9 @@ const userList = {
   total: 5
 }
 export default {
-  getUserList: () => {
+  getUserList: (config) => {
+    const { body } = config
+    console.log(body)
     return userList
   },
   createUser: () => ({

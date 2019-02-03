@@ -53,7 +53,6 @@
           <el-button size="mini" :type="scope.row.isclosed?'success':'danger'"
                      @click="handleDelete(scope.row)">{{scope.row.isclosed?'启用':'停用'}}
           </el-button>
-          <el-button size="mini" type="info" plain @click="handleCreate()">角色</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -64,35 +63,29 @@
     <el-dialog :title="textMap[dialogStatus]" :visible.sync="dialogFormVisible">
       <el-form ref="dataForm" :rules="rules" :model="temp" label-position="left" label-width="70px"
                style="width: 400px; margin-left:50px;">
-        <el-form-item :label="$t('table.type')" prop="type">
-          <el-select v-model="temp.type" class="filter-item" placeholder="Please select">
+        <el-form-item label="角色" prop="role">
+          <el-select v-model="temp.role" class="filter-item" placeholder="Please select">
             <el-option v-for="item in roleOptions" :key="item.key" :label="item.display_name"
                        :value="item.key"/>
           </el-select>
         </el-form-item>
-        <el-form-item :label="$t('table.date')" prop="timestamp">
-          <el-date-picker v-model="temp.timestamp" type="datetime" placeholder="Please pick a date"/>
+        <el-form-item label="用户昵称" prop="name">
+          <el-input v-model="temp.name"/>
         </el-form-item>
-        <el-form-item :label="$t('table.title')" prop="title">
-          <el-input v-model="temp.title"/>
+        <el-form-item label="用户名" prop="username">
+          <el-input v-model="temp.username"/>
         </el-form-item>
-        <el-form-item :label="$t('table.status')">
-          <el-select v-model="temp.status" class="filter-item" placeholder="Please select">
-            <el-option v-for="item in statusOptions" :key="item" :label="item" :value="item"/>
-          </el-select>
+        <el-form-item label="是否停用">
+          <el-checkbox v-model="temp.isclosed"></el-checkbox>
         </el-form-item>
-        <el-form-item :label="$t('table.importance')">
-          <el-rate v-model="temp.importance" :colors="['#99A9BF', '#F7BA2A', '#FF9900']" :max="3"
-                   style="margin-top:8px;"/>
-        </el-form-item>
-        <el-form-item :label="$t('table.remark')">
+        <el-form-item label="用户备注">
           <el-input :autosize="{ minRows: 2, maxRows: 4}" v-model="temp.remark" type="textarea"
                     placeholder="Please input"/>
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
-        <el-button @click="dialogFormVisible = false">{{ $t('table.cancel') }}</el-button>
-        <el-button type="primary" @click="dialogStatus==='create'?createData():updateData()">{{ $t('table.confirm') }}
+        <el-button @click="dialogFormVisible = false">取消</el-button>
+        <el-button type="primary" @click="dialogStatus==='create'?createData():updateData()">确认
         </el-button>
       </div>
     </el-dialog>
@@ -148,22 +141,12 @@
             display_name: `启用`
           }],
         roleOptions: [],
-        sortOptions: [{ label: 'ID Ascending', key: '+id' }, { label: 'ID Descending', key: '-id' }],
-        showReviewer: false,
-        temp: {
-          id: undefined,
-          importance: 1,
-          remark: '',
-          timestamp: new Date(),
-          title: '',
-          type: '',
-          status: 'published'
-        },
+        temp: {},
         dialogFormVisible: false,
         dialogStatus: '',
         textMap: {
-          update: 'Edit',
-          create: 'Create'
+          update: '编辑',
+          create: '新增'
         },
         dialogPvVisible: false,
         pvData: [],
@@ -199,7 +182,6 @@
         })
       },
       handleFilter() {
-        debugger;
         this.listQuery.page = 1
         this.getList()
       },
@@ -220,9 +202,8 @@
       createData() {
         this.$refs['dataForm'].validate((valid) => {
           if (valid) {
-            this.temp.id = parseInt(Math.random() * 100) + 1024 // mock a id
-            this.temp.author = 'vue-element-admin'
-            createArticle(this.temp).then(() => {
+            this.temp.userId = parseInt(Math.random() * 100) + 1024 // mock a id
+            createUser(this.temp).then(() => {
               this.list.unshift(this.temp)
               this.dialogFormVisible = false
               this.$notify({
@@ -237,7 +218,6 @@
       },
       handleUpdate(row) {
         this.temp = Object.assign({}, row) // copy obj
-        this.temp.timestamp = new Date(this.temp.timestamp)
         this.dialogStatus = 'update'
         this.dialogFormVisible = true
         this.$nextTick(() => {
@@ -247,11 +227,10 @@
       updateData() {
         this.$refs['dataForm'].validate((valid) => {
           if (valid) {
-            const tempData = Object.assign({}, this.temp)
-            tempData.timestamp = +new Date(tempData.timestamp) // change Thu Nov 30 2017 16:41:05 GMT+0800 (CST) to 1512031311464
-            updateArticle(tempData).then(() => {
+            const tempData = Object.assign({}, this.temp)// change Thu Nov 30 2017 16:41:05 GMT+0800 (CST) to 1512031311464
+            updateUser(tempData).then(() => {
               for (const v of this.list) {
-                if (v.id === this.temp.id) {
+                if (v.userId === this.temp.userId) {
                   const index = this.list.indexOf(v)
                   this.list.splice(index, 1, this.temp)
                   break
@@ -271,32 +250,11 @@
       handleDelete(row) {
         this.$notify({
           title: '成功',
-          message: '删除成功',
+          message: `${row.isclosed ? '启用' : '停用'}成功`,
           type: 'success',
           duration: 2000
         })
-        const index = this.list.indexOf(row)
-        this.list.splice(index, 1)
-      },
-      handleFetchPv(pv) {
-        fetchPv(pv).then(response => {
-          this.pvData = response.data.pvData
-          this.dialogPvVisible = true
-        })
-      },
-      handleDownload() {
-        this.downloadLoading = true
-        import('@/vendor/Export2Excel').then(excel => {
-          const tHeader = ['timestamp', 'title', 'type', 'importance', 'status']
-          const filterVal = ['timestamp', 'title', 'type', 'importance', 'status']
-          const data = this.formatJson(filterVal, this.list)
-          excel.export_json_to_excel({
-            header: tHeader,
-            data,
-            filename: 'table-list'
-          })
-          this.downloadLoading = false
-        })
+        row.isclosed = !row.isclosed
       },
       formatJson(filterVal, jsonData) {
         return jsonData.map(v => filterVal.map(j => {

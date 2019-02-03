@@ -1,9 +1,10 @@
 import request from '@/utils/request'
 
-export function fetchList() {
+export function fetchList(data) {
   return request({
     url: '/user/getuserlist',
-    method: 'post'
+    method: 'post',
+    data
   })
 }
 
@@ -14,7 +15,6 @@ export function fetchUser(data) {
     data
   })
 }
-
 
 export function createUser(data) {
   return request({
