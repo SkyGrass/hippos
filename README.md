@@ -1,2 +1,0 @@
-# hippos
-JiangSu Hippos
