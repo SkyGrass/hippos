@@ -1,5 +1,3 @@
-import { param2Obj } from '@/utils'
-
 const routerMap = {
   admin: [
     {
@@ -249,9 +247,32 @@ const routerMap = {
       'isclosed': false
     }
   ]
-
 }
+
+const fixMenuPro = (menus) => {
+  menus.forEach(item => {
+    if (item.meta) {
+      item.title = item.meta.title
+    }
+
+    item.disabled = item.isclosed
+    item.children.forEach(child => {
+      child.title = child.meta.title
+      child.disabled = child.isclosed
+
+      if (child.children && child.children.length > 0) {
+        fixMenuPro(child.children)
+      }
+    })
+  })
+  return menus
+}
+
 export default {
+  getAllMenu: () => {
+    const data = routerMap['admin']
+    return fixMenuPro(data)
+  },
   getRouterByRole: config => {
     const { role } = JSON.parse(config.body)
     return routerMap[role]
