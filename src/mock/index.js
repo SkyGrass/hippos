@@ -41,20 +41,23 @@ Mock.mock(/\/search\/user/, 'get', remoteSearchAPI.searchUser)
 Mock.mock(/\/transaction\/list/, 'get', transactionAPI.getList)
 
 // 菜单权限相关
-Mock.mock(/\/menu\/getmenubyrole/, 'post', menuAPI.getRouterByRole)
+Mock.mock(/\/menu\/getmenubyrole/, 'post', menuAPI.getAllMenuByRole)
 Mock.mock(/\/menu\/getallmenu/, 'post', menuAPI.getAllMenu)
+Mock.mock(/\/role\/getallmenuscanuse/, 'post', menuAPI.getAllMenuCanUse)
 
 // 角色相关
-Mock.mock(/\/role\/getrolelist/, 'post', roleAPI.getRoleList)
+Mock.mock(/\/role\/getallrolelist/, 'post', roleAPI.getAllRoleList)
 Mock.mock(/\/role\/createrole/, 'post', roleAPI.createRole)
 Mock.mock(/\/role\/delrole/, 'post', roleAPI.delRole)
 Mock.mock(/\/role\/updaterole/, 'post', roleAPI.updateRole)
 Mock.mock(/\/role\/getroleforselect/, 'post', roleAPI.getRoleForSelect)
 
 // 用户相关
-Mock.mock(/\/user\/getuserlist/, 'post', useAPI.getUserList)
+Mock.mock(/\/user\/getalluserlist/, 'post', useAPI.getAllUserList)
 Mock.mock(/\/user\/createuser/, 'post', useAPI.createUser)
 Mock.mock(/\/user\/deluser/, 'post', useAPI.delUser)
 Mock.mock(/\/user\/updateuser/, 'post', useAPI.updateUser)
+Mock.mock(/\/user\/getalltraderlist/, 'post', useAPI.getAllTraderList)
+Mock.mock(/\/user\/getallcustomerlist/, 'post', useAPI.getAllCustomerList)
 
 export default Mock

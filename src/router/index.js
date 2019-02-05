@@ -373,7 +373,7 @@ export const routerMap = {
   userlist: () => import('@/views/user/userlist'),
   menulist: () => import('@/views/sys/menulist'),
   rolelist: () => import('@/views/user/rolelist'),
-  dealercustomermap: () => import('@/views/table/dynamicTable/index'),
+  dealercustomermap: () => import('@/views/user/dealercustomermap'),
   presell: () => import('@/views/table/dynamicTable/index'),
   preselllist: () => import('@/views/table/dynamicTable/index')
 }

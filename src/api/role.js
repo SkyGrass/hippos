@@ -2,7 +2,7 @@ import request from '@/utils/request'
 
 export function fetchList() {
   return request({
-    url: '/role/getrolelist',
+    url: '/role/getallrolelist',
     method: 'post'
   })
 }
@@ -46,5 +46,4 @@ export function delRole(data) {
     data
   })
 }
-
 

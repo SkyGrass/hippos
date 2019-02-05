@@ -2,7 +2,7 @@ import request from '@/utils/request'
 
 export function fetchList(data) {
   return request({
-    url: '/user/getuserlist',
+    url: '/user/getalluserlist',
     method: 'post',
     data
   })
@@ -36,6 +36,21 @@ export function delUser(data) {
   return request({
     url: '/user/deluser',
     method: 'post',
+    data
+  })
+}
+
+export function fetchTraderList(data) {
+  return request({
+    url: `/user/getalltraderlist`,
+    method: `post`,
+    data
+  })
+}
+export function fetchCustomerList(data) {
+  return request({
+    url: `/user/getallcustomerlist`,
+    method: `post`,
     data
   })
 }

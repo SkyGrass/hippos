@@ -273,8 +273,19 @@ export default {
     const data = routerMap['admin']
     return fixMenuPro(data)
   },
-  getRouterByRole: config => {
+  getAllMenuByRole: config => {
     const { role } = JSON.parse(config.body)
     return routerMap[role]
+  },
+  /**
+   * 获取全部可用作为指定菜单父级的菜单
+   * 逻辑：1、自己不可为自己的子集
+   * 逻辑：2、自己不可为自己子集的子集
+   */
+  getAllMenuCanUse: config => {
+    const { menuId } = JSON.parse(config.body)
+    const menus = routerMap['admin']
+    menus.filter(f => f.menuId !== menuId && f.parentId !== menuId)
+    console.log(menus)
   }
 }

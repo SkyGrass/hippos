@@ -10,7 +10,8 @@ const userList = {
       'role': 'trader',
       'isclosed': false,
       'avatar': 'https://wpimg.wallstcn.com/f778738c-e4f8-4870-b634-56703b4acafe.gif',
-      'introduction': '我是经销商'
+      'introduction': '我是经销商',
+      'cuscode': ''
     },
     {
       'userId': '980b73af-4fd6-4196-a5d2-50688446a658',
@@ -20,7 +21,8 @@ const userList = {
       'role': 'seller',
       'isclosed': false,
       'avatar': 'https://wpimg.wallstcn.com/f778738c-e4f8-4870-b634-56703b4acafe.gif',
-      'introduction': '我是销售'
+      'introduction': '我是销售',
+      'cuscode': ''
     },
     {
       'userId': 'cd3e6811-0da7-4ce5-afe6-8ecd738305d3',
@@ -30,7 +32,8 @@ const userList = {
       'role': 'sa',
       'isclosed': false,
       'avatar': 'https://wpimg.wallstcn.com/f778738c-e4f8-4870-b634-56703b4acafe.gif',
-      'introduction': '我是系统管理员'
+      'introduction': '我是系统管理员',
+      'cuscode': ''
     },
     {
       'userId': 'e9a07cce-d4bf-484c-bf91-4da885156b1a',
@@ -40,7 +43,8 @@ const userList = {
       'role': 'admin',
       'isclosed': false,
       'avatar': 'https://wpimg.wallstcn.com/f778738c-e4f8-4870-b634-56703b4acafe.gif',
-      'introduction': '我是管理员'
+      'introduction': '我是管理员',
+      'cuscode': ''
     },
     {
       'userId': 'fa199354-9311-4bf6-bfb7-ecd3602ee9dd',
@@ -50,16 +54,30 @@ const userList = {
       'role': 'customer',
       'isclosed': false,
       'avatar': 'https://wpimg.wallstcn.com/f778738c-e4f8-4870-b634-56703b4acafe.gif',
-      'introduction': '我是客户'
+      'introduction': '我是客户',
+      'cuscode': '123qwe'
     }
   ],
   total: 5
 }
 export default {
-  getUserList: (config) => {
+  getAllUserList: (config) => {
     const { body } = config
-    console.log(body)
     return userList
+  },
+  getAllTraderList: () => {
+    const { items, total } = userList
+    return {
+      items: items.filter(f => f.role == `trader`),
+      total: items.filter(f => f.role == `trader`).length
+    }
+  },
+  getAllCustomerList: () => {
+    const { items, total } = userList
+    return {
+      items: items.filter(f => f.role == `customer`),
+      total: items.filter(f => f.role == `customer`).length
+    }
   },
   createUser: () => ({
     data: 'success'

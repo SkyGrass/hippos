@@ -22,20 +22,6 @@
           :value="item.key"
         />
       </el-select>
-      <el-select
-        v-model="listQuery.role"
-        placeholder="角色"
-        clearable
-        class="filter-item"
-        style="width: 150px"
-      >
-        <el-option
-          v-for="item in roleOptions"
-          :key="item.key"
-          :label="item.display_name+'('+item.key+')'"
-          :value="item.key"
-        />
-      </el-select>
       <el-button
         v-waves
         class="filter-item"
@@ -43,13 +29,6 @@
         icon="el-icon-search"
         @click="handleFilter"
       >搜索</el-button>
-      <el-button
-        class="filter-item"
-        style="margin-left: 10px;"
-        type="primary"
-        icon="el-icon-edit"
-        @click="handleCreate"
-      >新增</el-button>
     </div>
 
     <el-table
@@ -76,11 +55,6 @@
           <el-tag>{{ scope.row.role }}</el-tag>
         </template>
       </el-table-column>
-      <el-table-column label="U8客户编码" width="110px" align="center">
-        <template slot-scope="scope">
-          <el-tag>{{ scope.row.cuscode }}</el-tag>
-        </template>
-      </el-table-column>
       <el-table-column label="是否停用" width="80px" align="center">
         <template slot-scope="scope">
           <el-checkbox v-model="scope.row.isclosed"/>
@@ -93,12 +67,7 @@
         class-name="small-padding fixed-width"
       >
         <template slot-scope="scope">
-          <el-button type="warning" size="mini" @click="handleUpdate(scope.row)">编辑</el-button>
-          <el-button
-            :type="scope.row.isclosed?'success':'danger'"
-            size="mini"
-            @click="handleDelete(scope.row)"
-          >{{ scope.row.isclosed?'启用':'停用' }}</el-button>
+          <el-button type="warning" size="mini" @click="handleUpdate(scope.row)">绑定</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -117,19 +86,9 @@
         :rules="rules"
         :model="temp"
         label-position="left"
-        label-width="120px"
+        label-width="70px"
         style="width: 400px; margin-left:50px;"
       >
-        <el-form-item label="角色" prop="role">
-          <el-select v-model="temp.role" class="filter-item" placeholder="请选择角色">
-            <el-option
-              v-for="item in roleOptions"
-              :key="item.key"
-              :label="item.display_name"
-              :value="item.key"
-            />
-          </el-select>
-        </el-form-item>
         <el-form-item label="用户昵称" prop="name">
           <el-input v-model="temp.name"/>
         </el-form-item>
@@ -138,9 +97,6 @@
         </el-form-item>
         <el-form-item label="是否停用">
           <el-checkbox v-model="temp.isclosed"/>
-        </el-form-item>
-        <el-form-item v-if="temp.role == 'customer'" label="U8客户编码" prop="cuscode">
-          <el-input v-model="temp.cuscode"/>
         </el-form-item>
         <el-form-item label="用户备注">
           <el-input
@@ -170,7 +126,14 @@
 </template>
 
 <script>
-import { fetchList, createUser, updateUser } from '@/api/user'
+import {
+  fetchList,
+  fetchTraderList,
+  fetchCustomerList,
+  createUser,
+  updateUser,
+  delUser
+} from '@/api/user'
 import { fetchRoleForSelect } from '@/api/role'
 import waves from '@/directive/waves' // Waves directive
 import { parseTime } from '@/utils'
@@ -190,8 +153,7 @@ export default {
         page: 1,
         limit: 20,
         isclosed: undefined,
-        searchword: undefined,
-        role: undefined
+        searchword: undefined
       },
       statusOptions: [
         {
@@ -207,15 +169,7 @@ export default {
           display_name: `启用`
         }
       ],
-      roleOptions: [],
-      temp: {
-        roleId: '',
-        rolename: '',
-        rolecode: '',
-        roledescription: '',
-        isclosed: false,
-        isbuildin: false
-      },
+      temp: {},
       dialogFormVisible: false,
       dialogStatus: '',
       textMap: {
@@ -245,12 +199,11 @@ export default {
   },
   created() {
     this.getList()
-    this.getRoleForSelect()
   },
   methods: {
     getList() {
       this.listLoading = true
-      fetchList(this.listQuery).then(response => {
+      fetchTraderList(this.listQuery).then(response => {
         this.list = response.data.items
         this.total = response.data.total
 
@@ -258,12 +211,6 @@ export default {
         setTimeout(() => {
           this.listLoading = false
         }, 1.5 * 1000)
-      })
-    },
-    getRoleForSelect() {
-      fetchRoleForSelect().then(response => {
-        this.roleOptions = response.data
-        console.log(this.roleOptions)
       })
     },
     handleFilter() {
@@ -280,7 +227,6 @@ export default {
     handleCreate() {
       this.dialogStatus = 'create'
       this.dialogFormVisible = true
-      this.temp = {}
       this.$nextTick(() => {
         this.$refs['dataForm'].clearValidate()
       })

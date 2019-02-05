@@ -56,7 +56,7 @@
       @pagination="getList"
     />
 
-    <el-dialog :visible.sync="dialogFormVisible" title="菜单">
+    <el-dialog :visible.sync="dialogFormVisible" :title="textMap[dialogStatus]">
       <el-form
         ref="dataForm"
         :rules="rules"
@@ -110,19 +110,14 @@
       />
       <div slot="footer" class="dialog-footer">
         <el-button @click="dialogFormMenu = false">取消</el-button>
-        <el-button type="primary" @click="dialogStatus==='create'?createData():updateData()">确认</el-button>
+        <el-button type="primary" @click="handlerMenu()">确认</el-button>
       </div>
     </el-dialog>
   </div>
 </template>
 
 <script>
-import {
-  fetchList,
-  createRole,
-  updateRole,
-  delRole
-} from '@/api/role'
+import { fetchList, createRole, updateRole, delRole } from '@/api/role'
 import Pagination from '@/components/Pagination' // Secondary package based on el-pagination
 import treeToArray from './customEval'
 import treeTransfer from 'el-tree-transfer'
@@ -161,7 +156,8 @@ export default {
       },
       title: ['总菜单', '可用菜单'],
       data: [],
-      toData: []
+      toData: [],
+      tempData: []
     }
   },
   created() {
@@ -187,7 +183,6 @@ export default {
       })
     },
     handleMenu(row) {
-      console.log(row)
       this.dialogFormMenu = true
     },
     createData() {
@@ -253,25 +248,22 @@ export default {
     },
     // 监听穿梭框组件添加
     add(fromData, toData, obj) {
-      // 树形穿梭框模式transfer时，返回参数为左侧树移动后数据、右侧树移动后数据、移动的{keys,nodes,halfKeys,halfNodes}对象
-      // 通讯录模式addressList时，返回参数为右侧收件人列表、右侧抄送人列表、右侧密送人列表
-      console.log('fromData:', fromData)
-      console.log('toData:', toData)
-      console.log('obj:', obj)
+      this.tempData = toData
     },
     // 监听穿梭框组件移除
     remove(fromData, toData, obj) {
-      // 树形穿梭框模式transfer时，返回参数为左侧树移动后数据、右侧树移动后数据、移动的{keys,nodes,halfKeys,halfNodes}对象
-      // 通讯录模式addressList时，返回参数为右侧收件人列表、右侧抄送人列表、右侧密送人列表
-      console.log('fromData:', fromData)
-      console.log('toData:', toData)
-      console.log('obj:', obj)
+      this.tempData = toData
     },
     getMenus() {
       return getAllMenu().then(response => {
-        this.data = response.data
-        console.log(this.data)
+        const { data } = response
+        this.data = [...data].splice(0, 2)
+        this.toData = [...data].splice(2, 1)
+        this.tempData = this.toData
       })
+    },
+    handlerMenu() {
+      console.log(this.tempData)
     }
   }
 }
