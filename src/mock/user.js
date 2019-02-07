@@ -87,5 +87,8 @@ export default {
   }),
   delUser: () => ({
     data: 'success'
+  }),
+  reSetUserPwd: (data) => ({
+    data: 'success'
   })
 }

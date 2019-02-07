@@ -1,19 +1,40 @@
 import { param2Obj } from '@/utils'
 
 const userMap = {
+  sa: {
+    roles: ['sa'],
+    token: 'sa',
+    introduction: '我是超级管理员',
+    avatar: 'https://wpimg.wallstcn.com/f778738c-e4f8-4870-b634-56703b4acafe.gif',
+    name: 'SuperAdmin'
+  },
   admin: {
     roles: ['admin'],
     token: 'admin',
-    introduction: '我是超级管理员',
+    introduction: '我是系统管理员',
     avatar: 'https://wpimg.wallstcn.com/f778738c-e4f8-4870-b634-56703b4acafe.gif',
-    name: 'Super Admin'
+    name: 'Admin'
   },
-  editor: {
-    roles: ['editor'],
-    token: 'editor',
-    introduction: '我是编辑',
+  seller: {
+    roles: ['seller'],
+    token: 'seller',
+    introduction: '我是销售',
     avatar: 'https://wpimg.wallstcn.com/f778738c-e4f8-4870-b634-56703b4acafe.gif',
-    name: 'Normal Editor'
+    name: '销售内勤'
+  },
+  trader: {
+    roles: ['trader'],
+    token: 'trader',
+    introduction: '我是经销商',
+    avatar: 'https://wpimg.wallstcn.com/f778738c-e4f8-4870-b634-56703b4acafe.gif',
+    name: '经销商'
+  },
+  customer: {
+    roles: ['customer'],
+    token: 'customer',
+    introduction: '我是客户',
+    avatar: 'https://wpimg.wallstcn.com/f778738c-e4f8-4870-b634-56703b4acafe.gif',
+    name: '客户'
   }
 }
 

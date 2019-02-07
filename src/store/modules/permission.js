@@ -1,4 +1,4 @@
-import { asyncRouterMap, constantRouterMap, routerMap } from '@/router'
+import { constantRouterMap, routerMap } from '@/router'
 import { getMenuByRole } from '@/api/menu'
 
 /**
@@ -15,7 +15,7 @@ function hasPermission(roles, route) {
 }
 
 function generateAsyncRouter(routerMap, serverRouterMap) {
-  serverRouterMap.forEach(function(item, index) {
+  serverRouterMap.forEach(function (item, index) {
     item.component = routerMap[item.component]
     if (item.children && item.children.length > 0) {
       generateAsyncRouter(routerMap, item.children)
@@ -30,21 +30,24 @@ function generateAsyncRouter(routerMap, serverRouterMap) {
 * 将isclosed 属性复制到 disabled
 * */
 function deleteChildrenMenuRedirectPro(menu) {
-  menu.forEach(item => {
-    if (item.meta) {
-      item.title = item.meta.title
-    }
-
-    item.disabled = item.isclosed
-    item.children.forEach(child => {
-      delete child.redirect
-      if (menu.children && menu.children.length > 0) {
-        deleteChildrenMenuRedirectPro(child.children)
+  if (menu) {
+    menu.forEach(item => {
+      if (item.meta) {
+        item.title = item.meta.title
       }
-    })
-  })
 
-  return menu
+      item.disabled = item.isclosed
+      item.children.forEach(child => {
+        delete child.redirect
+        if (menu.children && menu.children.length > 0) {
+          deleteChildrenMenuRedirectPro(child.children)
+        }
+      })
+    })
+
+    return menu
+  }
+  return undefined;
 }
 
 /**
@@ -87,10 +90,8 @@ const permission = {
         getMenuByRole(roles).then(response => {
           let { data } = response
           data = deleteChildrenMenuRedirectPro(data)
-
           const serverRouterMap = generateAsyncRouter(routerMap, data)
-          accessedRouters = [...filterAsyncRouter(serverRouterMap, roles), ...filterAsyncRouter(asyncRouterMap, roles)]
-
+          accessedRouters = filterAsyncRouter(serverRouterMap, roles)
           commit('SET_ROUTERS', accessedRouters)
           resolve()
         }).catch(error => {

@@ -1,6 +1,10 @@
 <template>
   <div class="navbar">
-    <hamburger :toggle-click="toggleSideBar" :is-active="sidebar.opened" class="hamburger-container"/>
+    <hamburger
+      :toggle-click="toggleSideBar"
+      :is-active="sidebar.opened"
+      class="hamburger-container"
+    />
 
     <breadcrumb class="breadcrumb-container"/>
 
@@ -16,9 +20,14 @@
           <size-select class="international right-menu-item"/>
         </el-tooltip>
 
-        <lang-select class="international right-menu-item"/>
+        <lang-select class="international right-menu-item" style="display:none"/>
 
-        <el-tooltip :content="$t('navbar.theme')" effect="dark" placement="bottom">
+        <el-tooltip
+          :content="$t('navbar.theme')"
+          effect="dark"
+          placement="bottom"
+          style="display:none"
+        >
           <theme-picker class="theme-switch right-menu-item"/>
         </el-tooltip>
       </template>
@@ -30,15 +39,18 @@
         </div>
         <el-dropdown-menu slot="dropdown">
           <router-link to="/">
-            <el-dropdown-item>
-              {{ $t('navbar.dashboard') }}
-            </el-dropdown-item>
+            <el-dropdown-item>{{ $t('navbar.dashboard') }}</el-dropdown-item>
           </router-link>
-          <a target="_blank" href="https://github.com/PanJiaChen/vue-element-admin/">
-            <el-dropdown-item>
-              {{ $t('navbar.github') }}
-            </el-dropdown-item>
+          <a
+            target="_blank"
+            href="https://github.com/PanJiaChen/vue-element-admin/"
+            style="display:none"
+          >
+            <el-dropdown-item>{{ $t('navbar.github') }}</el-dropdown-item>
           </a>
+          <el-dropdown-item>
+            <span style="display:block;" @click="modifyPwd">{{ $t('navbar.modifyPwd') }}</span>
+          </el-dropdown-item>
           <el-dropdown-item divided>
             <span style="display:block;" @click="logout">{{ $t('navbar.logOut') }}</span>
           </el-dropdown-item>
@@ -49,14 +61,14 @@
 </template>
 
 <script>
-import { mapGetters } from 'vuex'
-import Breadcrumb from '@/components/Breadcrumb'
-import Hamburger from '@/components/Hamburger'
-import ErrorLog from '@/components/ErrorLog'
-import Screenfull from '@/components/Screenfull'
-import SizeSelect from '@/components/SizeSelect'
-import LangSelect from '@/components/LangSelect'
-import ThemePicker from '@/components/ThemePicker'
+import { mapGetters } from "vuex";
+import Breadcrumb from "@/components/Breadcrumb";
+import Hamburger from "@/components/Hamburger";
+import ErrorLog from "@/components/ErrorLog";
+import Screenfull from "@/components/Screenfull";
+import SizeSelect from "@/components/SizeSelect";
+import LangSelect from "@/components/LangSelect";
+import ThemePicker from "@/components/ThemePicker";
 
 export default {
   components: {
@@ -69,24 +81,20 @@ export default {
     ThemePicker
   },
   computed: {
-    ...mapGetters([
-      'sidebar',
-      'name',
-      'avatar',
-      'device'
-    ])
+    ...mapGetters(["sidebar", "name", "avatar", "device"])
   },
   methods: {
     toggleSideBar() {
-      this.$store.dispatch('toggleSideBar')
+      this.$store.dispatch("toggleSideBar");
     },
     logout() {
-      this.$store.dispatch('LogOut').then(() => {
-        location.reload()// In order to re-instantiate the vue-router object to avoid bugs
-      })
-    }
+      this.$store.dispatch("LogOut").then(() => {
+        location.reload(); // In order to re-instantiate the vue-router object to avoid bugs
+      });
+    },
+    modifyPwd() {}
   }
-}
+};
 </script>
 
 <style rel="stylesheet/scss" lang="scss" scoped>
@@ -100,7 +108,7 @@ export default {
     float: left;
     padding: 0 10px;
   }
-  .breadcrumb-container{
+  .breadcrumb-container {
     float: left;
   }
   .errLog-container {
@@ -110,8 +118,8 @@ export default {
   .right-menu {
     float: right;
     height: 100%;
-    &:focus{
-     outline: none;
+    &:focus {
+      outline: none;
     }
     .right-menu-item {
       display: inline-block;
@@ -120,7 +128,7 @@ export default {
     .screenfull {
       height: 20px;
     }
-    .international{
+    .international {
       vertical-align: top;
     }
     .theme-switch {

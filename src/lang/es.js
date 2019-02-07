@@ -70,7 +70,8 @@ export default {
     github: 'Github',
     screenfull: 'Pantalla completa',
     theme: 'Tema',
-    size: 'Tamaño global'
+    size: 'Tamaño global',
+    modifyPwd: `Modify Password`
   },
   login: {
     title: 'Formulario de acceso',

@@ -30,7 +30,9 @@ router.beforeEach((to, from, next) => {
           store.dispatch('GenerateRoutes', { roles }).then(() => { // 根据roles权限生成可访问的路由表
             router.addRoutes(store.getters.addRouters) // 动态添加可访问路由表
             next({ ...to, replace: true }) // hack方法 确保addRoutes已完成 ,set the replace: true so the navigation will not leave a history record
-          })
+          }).catch(() => {
+            //TODO 完全没有菜单的角色
+          });
         }).catch((err) => {
           store.dispatch('FedLogOut').then(() => {
             Message.error(err)
@@ -42,7 +44,7 @@ router.beforeEach((to, from, next) => {
         if (hasPermission(store.getters.roles, to.meta.roles)) {
           next()
         } else {
-          next({ path: '/401', replace: true, query: { noGoBack: true }})
+          next({ path: '/401', replace: true, query: { noGoBack: true } })
         }
         // 可删 ↑
       }

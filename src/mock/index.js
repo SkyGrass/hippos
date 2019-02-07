@@ -7,11 +7,12 @@ import transactionAPI from './transaction'
 import menuAPI from './menu'
 import roleAPI from './role'
 import useAPI from './user'
+import u8CusAPI from './u8cus'
 
 // 修复在使用 MockJS 情况下，设置 withCredentials = true，且未被拦截的跨域请求丢失 Cookies 的问题
 // https://github.com/nuysoft/Mock/issues/300
 Mock.XHR.prototype.proxy_send = Mock.XHR.prototype.send
-Mock.XHR.prototype.send = function() {
+Mock.XHR.prototype.send = function () {
   if (this.custom.xhr) {
     this.custom.xhr.withCredentials = this.withCredentials || false
   }
@@ -57,7 +58,11 @@ Mock.mock(/\/user\/getalluserlist/, 'post', useAPI.getAllUserList)
 Mock.mock(/\/user\/createuser/, 'post', useAPI.createUser)
 Mock.mock(/\/user\/deluser/, 'post', useAPI.delUser)
 Mock.mock(/\/user\/updateuser/, 'post', useAPI.updateUser)
+Mock.mock(/\/user\/resetuserpwd/, 'post', useAPI.reSetUserPwd)
 Mock.mock(/\/user\/getalltraderlist/, 'post', useAPI.getAllTraderList)
 Mock.mock(/\/user\/getallcustomerlist/, 'post', useAPI.getAllCustomerList)
+
+//U8客户档案
+Mock.mock(/\/u8cus\/getallu8cuslist/, 'post', u8CusAPI.getAllU8CusList)
 
 export default Mock

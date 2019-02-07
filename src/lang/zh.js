@@ -70,10 +70,11 @@ export default {
     github: '项目地址',
     screenfull: '全屏',
     theme: '换肤',
-    size: '布局大小'
+    size: '布局大小',
+    modifyPwd: `修改密码`
   },
   login: {
-    title: '系统登录',
+    title: '河马井客户下单系统登录',
     logIn: '登录',
     username: '账号',
     password: '密码',

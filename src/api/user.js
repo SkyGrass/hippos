@@ -40,6 +40,14 @@ export function delUser(data) {
   })
 }
 
+export function reSetUserPwd(data) {
+  return request({
+    url: '/user/resetuserpwd',
+    method: 'post',
+    data
+  })
+}
+
 export function fetchTraderList(data) {
   return request({
     url: `/user/getalltraderlist`,
