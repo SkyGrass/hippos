@@ -33,5 +33,11 @@ export default {
     getAllU8CusList: (config) => {
         const { body } = config
         return u8CusList
+    },
+
+    //根据经销商编码返回与其绑定的客户列表
+    getU8CusListFromTrader: (config) => {
+        const { body } = config;
+        return u8CusList;
     }
 }

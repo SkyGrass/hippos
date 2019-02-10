@@ -114,7 +114,7 @@ const routerMap = [
     'name': 'SellManage',
     'path': '/sell',
     'component': 'layout',
-    'redirect': 'nodirect',
+    'redirect': 'noredirect',
     'hidden': false,
     'alwaysShow': true,
     'meta': {
@@ -123,9 +123,9 @@ const routerMap = [
       'title': '销售管理',
       'icon': 'money',
       'roles': [
-        'customer', 'seller'
+        'customer', 'seller', 'trader'
       ],
-      'rolesdata': 'admin',
+      'rolesdata': 'customer,seller,trader',
       'noCache': true,
       'breadcrumb': true
     },
@@ -145,9 +145,9 @@ const routerMap = [
           'title': '销售预订单',
           'icon': 'form',
           'roles': [
-            'customer', 'seller'
+            'customer', 'seller', 'trader'
           ],
-          'rolesdata': 'customer,seller',
+          'rolesdata': 'customer,seller,trader',
           'noCache': true,
           'breadcrumb': true
         },
@@ -172,9 +172,9 @@ const routerMap = [
           'title': '销售预订单列表',
           'icon': 'list',
           'roles': [
-            'customer', 'seller'
+            'customer', 'seller', 'trader'
           ],
-          'rolesdata': 'customer,seller',
+          'rolesdata': 'customer,seller,trader',
           'noCache': true,
           'breadcrumb': true
         },
@@ -196,7 +196,7 @@ const routerMap = [
     'name': 'SysManage',
     'path': '/sys',
     'component': 'layout',
-    'redirect': 'nodirect',
+    'redirect': 'noredirect',
     'hidden': false,
     'alwaysShow': true,
     'meta': {

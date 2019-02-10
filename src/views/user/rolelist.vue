@@ -43,7 +43,7 @@
             size="mini"
             @click="handleDelete(scope.row)"
           >{{ scope.row.isclosed?'启用':'停用' }}</el-button>
-          <el-button size="mini" type="info" plain @click="handleMenu(scope.row)">菜单</el-button>
+          <!-- <el-button size="mini" type="info" plain @click="handleMenu(scope.row)">菜单</el-button> -->
         </template>
       </el-table-column>
     </el-table>
@@ -92,43 +92,22 @@
         <el-button type="primary" @click="dialogStatus==='create'?createData():updateData()">确认</el-button>
       </div>
     </el-dialog>
-
-    <el-dialog :visible.sync="dialogFormMenu" title="菜单设置">
-      <tree-transfer
-        :title="title"
-        :from_data="data"
-        :to_data="toData"
-        :default-props="{label:'title'}"
-        :mode="mode"
-        node_key="menuId"
-        pid="parentId"
-        height="540px"
-        open-all
-        default-transfer
-        @addBtn="add"
-        @removeBtn="remove"
-      />
-      <div slot="footer" class="dialog-footer">
-        <el-button @click="dialogFormMenu = false">取消</el-button>
-        <el-button type="primary" @click="handlerMenu()">确认</el-button>
-      </div>
-    </el-dialog>
   </div>
 </template>
 
 <script>
-import { fetchList, createRole, updateRole, delRole } from '@/api/role'
-import Pagination from '@/components/Pagination' // Secondary package based on el-pagination
-import treeToArray from './customEval'
-import treeTransfer from 'el-tree-transfer'
-import { getAllMenu } from '@/api/menu'
+import { fetchList, createRole, updateRole, delRole } from "@/api/role";
+import Pagination from "@/components/Pagination"; // Secondary package based on el-pagination
+import treeToArray from "./customEval";
+import treeTransfer from "el-tree-transfer";
+import { getAllMenu } from "@/api/menu";
 
 export default {
-  name: 'ComplexTable',
+  name: "ComplexTable",
   components: { Pagination, treeTransfer },
   data() {
     return {
-      mode: 'transfer',
+      mode: "transfer",
       tableKey: 0,
       func: treeToArray,
       list: null,
@@ -139,132 +118,125 @@ export default {
         limit: 20
       },
       temp: {},
-      dialogStatus: '',
+      dialogStatus: "",
       textMap: {
-        update: '编辑',
-        create: '新增'
+        update: "编辑",
+        create: "新增"
       },
       dialogFormVisible: false,
       dialogFormMenu: false,
       rules: {
         rolecode: [
-          { required: true, message: '角色编码不可为空', trigger: 'blur' }
+          { required: true, message: "角色编码不可为空", trigger: "blur" }
         ],
         rolename: [
-          { required: true, message: '角色名称不可为空', trigger: 'blur' }
+          { required: true, message: "角色名称不可为空", trigger: "blur" }
         ]
-      },
-      title: ['总菜单', '可用菜单'],
-      data: [],
-      toData: [],
-      tempData: []
-    }
+      }
+    };
   },
   created() {
-    this.getList()
-    this.getMenus()
+    this.getList();
+    this.getMenus();
   },
   methods: {
     getList() {
-      this.listLoading = true
+      this.listLoading = true;
       return fetchList().then(response => {
-        this.list = response.data.items
-        this.total = response.data.total
+        this.list = response.data.items;
+        this.total = response.data.total;
         setTimeout(() => {
-          this.listLoading = false
-        }, 1.5 * 1000)
-      })
+          this.listLoading = false;
+        }, 1.5 * 1000);
+      });
     },
     handleCreate() {
-      this.dialogStatus = 'create'
-      this.dialogFormVisible = true
+      this.dialogStatus = "create";
+      this.dialogFormVisible = true;
       this.$nextTick(() => {
-        this.$refs['dataForm'].clearValidate()
-      })
-    },
-    handleMenu(row) {
-      this.dialogFormMenu = true
+        this.$refs["dataForm"].clearValidate();
+      });
     },
     createData() {
-      this.$refs['dataForm'].validate(valid => {
+      this.$refs["dataForm"].validate(valid => {
         if (valid) {
-          this.temp.roleId = parseInt(Math.random() * 100) + 1024 // mock a id
+          this.temp.roleId = parseInt(Math.random() * 100) + 1024; // mock a id
           createRole(this.temp).then(() => {
-            this.list.unshift(this.temp)
-            this.dialogFormVisible = false
+            this.list.unshift(this.temp);
+            this.dialogFormVisible = false;
             this.$notify({
-              title: '成功',
-              message: '创建成功',
-              type: 'success',
+              title: "成功",
+              message: "创建成功",
+              type: "success",
               duration: 2000
-            })
-          })
+            });
+          });
         }
-      })
+      });
     },
     handleUpdate(row) {
-      this.dialogFormVisible = true
-      this.temp = Object.assign({}, row) // copy obj
+      this.dialogFormVisible = true;
+      this.temp = Object.assign({}, row); // copy obj
 
-      this.dialogStatus = 'update'
-      this.dialogFormVisible = true
+      this.dialogStatus = "update";
+      this.dialogFormVisible = true;
       this.$nextTick(() => {
-        this.$refs['dataForm'].clearValidate()
-      })
+        this.$refs["dataForm"].clearValidate();
+      });
     },
     updateData() {
-      this.$refs['dataForm'].validate(valid => {
+      this.$refs["dataForm"].validate(valid => {
         if (valid) {
-          const tempData = Object.assign({}, this.temp)
+          const tempData = Object.assign({}, this.temp);
           updateRole(tempData).then(() => {
             for (const v of this.list) {
               if (v.roleId === this.temp.roleId) {
-                const index = this.list.indexOf(v)
-                this.list.splice(index, 1, this.temp)
-                break
+                const index = this.list.indexOf(v);
+                this.list.splice(index, 1, this.temp);
+                break;
               }
             }
-            this.dialogFormVisible = false
+            this.dialogFormVisible = false;
             this.$notify({
-              title: '成功',
-              message: '更新成功',
-              type: 'success',
+              title: "成功",
+              message: "更新成功",
+              type: "success",
               duration: 2000
-            })
-          })
+            });
+          });
         }
-      })
+      });
     },
     handleDelete(row) {
       delRole(row).then(() => {
-        row.isclosed = !row.isclosed
+        row.isclosed = !row.isclosed;
         this.$notify({
-          title: '成功',
-          message: '更新成功',
-          type: 'success',
+          title: "成功",
+          message: "更新成功",
+          type: "success",
           duration: 2000
-        })
-      })
+        });
+      });
     },
     // 监听穿梭框组件添加
     add(fromData, toData, obj) {
-      this.tempData = toData
+      this.tempData = toData;
     },
     // 监听穿梭框组件移除
     remove(fromData, toData, obj) {
-      this.tempData = toData
+      this.tempData = toData;
     },
     getMenus() {
       return getAllMenu().then(response => {
-        const { data } = response
-        this.data = [...data].splice(0, 2)
-        this.toData = [...data].splice(2, 1)
-        this.tempData = this.toData
-      })
+        const { data } = response;
+        this.data = [...data].splice(0, 2);
+        this.toData = [...data].splice(2, 1);
+        this.tempData = this.toData;
+      });
     },
     handlerMenu() {
-      console.log(this.tempData)
+      console.log(this.tempData);
     }
   }
-}
+};
 </script>

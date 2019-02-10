@@ -7,6 +7,7 @@ const user = {
     status: '',
     code: '',
     token: getToken(),
+    username: ``,
     name: '',
     avatar: '',
     introduction: '',
@@ -34,6 +35,9 @@ const user = {
     },
     SET_NAME: (state, name) => {
       state.name = name
+    },
+    SET_USERNAME: (state, username) => {
+      state.username = username
     },
     SET_AVATAR: (state, avatar) => {
       state.avatar = avatar
@@ -74,8 +78,8 @@ const user = {
           } else {
             reject('getInfo: roles must be a non-null array!')
           }
-
           commit('SET_NAME', data.name)
+          commit('SET_USERNAME', data.username)
           commit('SET_AVATAR', data.avatar)
           commit('SET_INTRODUCTION', data.introduction)
           resolve(response)
@@ -131,6 +135,7 @@ const user = {
           const data = response.data
           commit('SET_ROLES', data.roles)
           commit('SET_NAME', data.name)
+          commit('SET_USERNAME', data.username)
           commit('SET_AVATAR', data.avatar)
           commit('SET_INTRODUCTION', data.introduction)
           dispatch('GenerateRoutes', data) // 动态修改权限后 重绘侧边菜单

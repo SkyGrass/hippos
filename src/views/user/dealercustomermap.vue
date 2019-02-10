@@ -52,7 +52,7 @@
       </el-table-column>
       <el-table-column label="角色" width="110px" align="center">
         <template slot-scope="scope">
-          <el-tag>{{ scope.row.role }}</el-tag>
+          <span>{{ scope.row.role }}</span>
         </template>
       </el-table-column>
       <el-table-column label="是否停用" width="80px" align="center">
@@ -67,7 +67,7 @@
         class-name="small-padding fixed-width"
       >
         <template slot-scope="scope">
-          <el-button type="warning" size="mini" @click="handleUpdate(scope.row)">绑定</el-button>
+          <el-button type="warning" size="mini" @click="handlerShowCus(scope.row)">绑定</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -113,14 +113,41 @@
       </div>
     </el-dialog>
 
-    <el-dialog :visible.sync="dialogPvVisible" title="Reading statistics">
-      <el-table :data="pvData" border fit highlight-current-row style="width: 100%">
-        <el-table-column prop="key" label="Channel"/>
-        <el-table-column prop="pv" label="Pv"/>
-      </el-table>
-      <span slot="footer" class="dialog-footer">
-        <el-button type="primary" @click="dialogPvVisible = false">{{ $t('table.confirm') }}</el-button>
-      </span>
+    <el-dialog :visible.sync="dialogFormCus" title="选取U8客户">
+      <div class="filter-container">
+        <el-input
+          v-model="u8cuslistQuery.searchword"
+          placeholder="U8客户编码/客户名称"
+          style="width: 200px;"
+          class="filter-item"
+          @keyup.enter.native="handleU8Filter"
+        />
+        <el-button
+          v-waves
+          class="filter-item"
+          type="primary"
+          icon="el-icon-search"
+          @click="handleU8Filter"
+        >搜索</el-button>
+      </div>
+      <tree-transfer
+        :title="title"
+        :from_data="u8list"
+        :to_data="toData"
+        :default-props="{label:'ccusname'}"
+        :mode="mode"
+        node_key="ccuscode"
+        pid="parentId"
+        height="540px"
+        open-all
+        default-transfer
+        @addBtn="add"
+        @removeBtn="remove"
+      />
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="dialogFormCus = false">取消</el-button>
+        <el-button type="primary" @click="handlerCus()">确认</el-button>
+      </div>
     </el-dialog>
   </div>
 </template>
@@ -133,21 +160,24 @@ import {
   createUser,
   updateUser,
   delUser
-} from '@/api/user'
-import { fetchRoleForSelect } from '@/api/role'
-import waves from '@/directive/waves' // Waves directive
-import { parseTime } from '@/utils'
-import Pagination from '@/components/Pagination' // Secondary package based on el-pagination
-
+} from "@/api/user";
+import { fetchRoleForSelect } from "@/api/role";
+import { fetchU8CusList } from "@/api/u8cus";
+import waves from "@/directive/waves"; // Waves directive
+import { parseTime } from "@/utils";
+import Pagination from "@/components/Pagination"; // Secondary package based on el-pagination
+import treeTransfer from "el-tree-transfer";
 export default {
-  name: 'ComplexTable',
-  components: { Pagination },
+  name: "ComplexTable",
+  components: { Pagination, treeTransfer },
   directives: { waves },
   data() {
     return {
+      mode: "transfer",
       tableKey: 0,
       list: null,
       total: 0,
+      u8list: null,
       listLoading: true,
       listQuery: {
         page: 1,
@@ -155,11 +185,12 @@ export default {
         isclosed: undefined,
         searchword: undefined
       },
+      u8cuslistQuery: {
+        page: 1,
+        limit: 20,
+        searchword: undefined
+      },
       statusOptions: [
-        {
-          key: `all`,
-          display_name: `全部`
-        },
         {
           key: `true`,
           display_name: `停用`
@@ -171,134 +202,167 @@ export default {
       ],
       temp: {},
       dialogFormVisible: false,
-      dialogStatus: '',
+      dialogStatus: "",
       textMap: {
-        update: '编辑',
-        create: '新增'
+        update: "编辑",
+        create: "新增"
       },
-      dialogPvVisible: false,
-      pvData: [],
+      dialogFormCus: false,
       rules: {
         type: [
-          { required: true, message: 'type is required', trigger: 'change' }
+          { required: true, message: "type is required", trigger: "change" }
         ],
         timestamp: [
           {
-            type: 'date',
+            type: "date",
             required: true,
-            message: 'timestamp is required',
-            trigger: 'change'
+            message: "timestamp is required",
+            trigger: "change"
           }
         ],
         title: [
-          { required: true, message: 'title is required', trigger: 'blur' }
+          { required: true, message: "title is required", trigger: "blur" }
         ]
       },
-      downloadLoading: false
-    }
+      title: ["尚未绑定的客户", "已选取客户"],
+      data: [],
+      toData: [],
+      tempData: []
+    };
   },
   created() {
-    this.getList()
+    this.getList();
+    this.getU8CusList();
   },
   methods: {
     getList() {
-      this.listLoading = true
+      this.listLoading = true;
       fetchTraderList(this.listQuery).then(response => {
-        this.list = response.data.items
-        this.total = response.data.total
+        this.list = response.data.items;
+        this.total = response.data.total;
 
         // Just to simulate the time of the request
         setTimeout(() => {
-          this.listLoading = false
-        }, 1.5 * 1000)
-      })
+          this.listLoading = false;
+        }, 1.5 * 1000);
+      });
     },
     handleFilter() {
-      this.listQuery.page = 1
-      this.getList()
+      this.listQuery.page = 1;
+      this.getList();
     },
     handleModifyStatus(row, status) {
       this.$message({
-        message: '操作成功',
-        type: 'success'
-      })
-      row.status = status
+        message: "操作成功",
+        type: "success"
+      });
+      row.status = status;
     },
     handleCreate() {
-      this.dialogStatus = 'create'
-      this.dialogFormVisible = true
+      this.dialogStatus = "create";
+      this.dialogFormVisible = true;
       this.$nextTick(() => {
-        this.$refs['dataForm'].clearValidate()
-      })
+        this.$refs["dataForm"].clearValidate();
+      });
     },
     createData() {
-      this.$refs['dataForm'].validate(valid => {
+      this.$refs["dataForm"].validate(valid => {
         if (valid) {
-          this.temp.userId = parseInt(Math.random() * 100) + 1024 // mock a id
+          this.temp.userId = parseInt(Math.random() * 100) + 1024; // mock a id
           createUser(this.temp).then(() => {
-            this.list.unshift(this.temp)
-            this.dialogFormVisible = false
+            this.list.unshift(this.temp);
+            this.dialogFormVisible = false;
             this.$notify({
-              title: '成功',
-              message: '创建成功',
-              type: 'success',
+              title: "成功",
+              message: "创建成功",
+              type: "success",
               duration: 2000
-            })
-          })
+            });
+          });
         }
-      })
+      });
     },
     handleUpdate(row) {
-      this.temp = Object.assign({}, row) // copy obj
-      this.dialogStatus = 'update'
-      this.dialogFormVisible = true
+      this.temp = Object.assign({}, row); // copy obj
+      this.dialogStatus = "update";
+      this.dialogFormVisible = true;
       this.$nextTick(() => {
-        this.$refs['dataForm'].clearValidate()
-      })
+        this.$refs["dataForm"].clearValidate();
+      });
     },
     updateData() {
-      this.$refs['dataForm'].validate(valid => {
+      this.$refs["dataForm"].validate(valid => {
         if (valid) {
-          const tempData = Object.assign({}, this.temp) // change Thu Nov 30 2017 16:41:05 GMT+0800 (CST) to 1512031311464
+          const tempData = Object.assign({}, this.temp); // change Thu Nov 30 2017 16:41:05 GMT+0800 (CST) to 1512031311464
           updateUser(tempData).then(() => {
             for (const v of this.list) {
               if (v.userId === this.temp.userId) {
-                const index = this.list.indexOf(v)
-                this.list.splice(index, 1, this.temp)
-                break
+                const index = this.list.indexOf(v);
+                this.list.splice(index, 1, this.temp);
+                break;
               }
             }
-            this.dialogFormVisible = false
+            this.dialogFormVisible = false;
             this.$notify({
-              title: '成功',
-              message: '更新成功',
-              type: 'success',
+              title: "成功",
+              message: "更新成功",
+              type: "success",
               duration: 2000
-            })
-          })
+            });
+          });
         }
-      })
+      });
     },
     handleDelete(row) {
       this.$notify({
-        title: '成功',
-        message: `${row.isclosed ? '启用' : '停用'}成功`,
-        type: 'success',
+        title: "成功",
+        message: `${row.isclosed ? "启用" : "停用"}成功`,
+        type: "success",
         duration: 2000
-      })
-      row.isclosed = !row.isclosed
+      });
+      row.isclosed = !row.isclosed;
     },
     formatJson(filterVal, jsonData) {
       return jsonData.map(v =>
         filterVal.map(j => {
-          if (j === 'timestamp') {
-            return parseTime(v[j])
+          if (j === "timestamp") {
+            return parseTime(v[j]);
           } else {
-            return v[j]
+            return v[j];
           }
         })
-      )
+      );
+    },
+    handlerShowCus(row) {
+      this.dialogFormCus = true;
+    },
+    getU8CusList() {
+      this.u8cuslistLoading = true;
+      fetchU8CusList(this.u8cuslistQuery).then(response => {
+        this.u8list = response.data.items;
+        this.u8total = response.data.total;
+
+        // Just to simulate the time of the request
+        setTimeout(() => {
+          this.u8cuslistLoading = false;
+        }, 1.5 * 1000);
+      });
+    },
+    handleU8Filter() {
+      this.u8cuslistQuery.page = 1;
+      this.getU8CusList();
+    },
+    // 监听穿梭框组件添加
+    add(fromData, toData, obj) {
+      this.tempData = toData;
+    },
+    // 监听穿梭框组件移除
+    remove(fromData, toData, obj) {
+      this.tempData = toData;
+    },
+    handlerCus() {
+      console.log(this.tempData);
     }
   }
-}
+};
 </script>

@@ -74,7 +74,7 @@ export default {
     modifyPwd: `Modify Password`
   },
   login: {
-    title: 'Login Form',
+    title: '河马井客户下单系统登录',
     logIn: 'Log in',
     username: 'Username',
     password: 'Password',

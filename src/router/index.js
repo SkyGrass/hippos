@@ -340,6 +340,6 @@ export const routerMap = {
   menulist: () => import('@/views/sys/menulist'),
   rolelist: () => import('@/views/user/rolelist'),
   dealercustomermap: () => import('@/views/user/dealercustomermap'),
-  presell: () => import('@/views/table/dynamicTable/index'),
+  presell: () => import('@/views/sell/presell'),
   preselllist: () => import('@/views/table/dynamicTable/index')
 }

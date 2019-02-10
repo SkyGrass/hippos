@@ -7,3 +7,10 @@ export function fetchU8CusList(data) {
         data
     })
 }
+export function fetchU8CusListFromTrader(data) {
+    return request({
+        url: '/u8cus/getu8cuslistfromtrader',
+        method: 'post',
+        data
+    })
+}

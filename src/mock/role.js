@@ -46,13 +46,14 @@ const roleList = {
 }
 export default {
   getAllRoleList: () => {
-    const {
-      items, total
-    } = roleList
-    return {
-      items: items.filter(f => f.isbuildin !== true),
-      total: items.filter(f => f.isbuildin !== true).length
-    }
+    // const {
+    //   items, total
+    // } = roleList
+    // return {
+    //   items: items.filter(f => f.isbuildin !== true),
+    //   total: items.filter(f => f.isbuildin !== true).length
+    // }
+    return roleList;
   },
   getRoleForSelect: () => {
     return roleList.items.filter(f => f.isclosed === false && f.isbuildin === false).map(m => {

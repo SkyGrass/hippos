@@ -92,7 +92,23 @@ export default {
         location.reload(); // In order to re-instantiate the vue-router object to avoid bugs
       });
     },
-    modifyPwd() {}
+    modifyPwd() {
+      this.$prompt("请输入新密码", "提示", {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        inputValidator: value => {
+          return value != null && value.length >= 6;
+        },
+        inputErrorMessage: "新密码输入不正确,长度不能少于6位"
+      })
+        .then(({ value }) => {
+          this.$message({
+            type: "success",
+            message: "你的邮箱是: " + value
+          });
+        })
+        .catch(() => {});
+    }
   }
 };
 </script>

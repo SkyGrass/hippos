@@ -149,50 +149,50 @@
    Auth: Lei.j1ang
    Created: 2018/1/19-14:54
    */
-import treeTable from '@/components/TreeTable'
-import treeToArray from './customEval'
+import treeTable from "@/components/TreeTable";
+import treeToArray from "./customEval";
 
-import ELTreeSelect from 'el-tree-select'
-import waves from '@/directive/waves' // Waves directive
-import { getAllMenu } from '@/api/menu'
-import { fetchList } from '@/api/role'
+import ELTreeSelect from "el-tree-select";
+import waves from "@/directive/waves"; // Waves directive
+import { getAllMenu } from "@/api/menu";
+import { fetchList } from "@/api/role";
 export default {
-  name: 'CustomTreeTableDemo',
+  name: "CustomTreeTableDemo",
   components: { treeTable, ELTreeSelect },
   directives: { waves },
   data() {
     return {
       func: treeToArray,
       expandAll: false,
-      rowclass: 'rowclass',
+      rowclass: "rowclass",
       columns: [
         {
-          text: '',
-          value: 'meta.title',
+          text: "",
+          value: "meta.title",
           width: 50,
-          align: 'center'
+          align: "center"
         },
         {
-          text: '排序',
-          value: 'sort',
+          text: "排序",
+          value: "sort",
           width: 50,
-          align: 'center'
+          align: "center"
         }
       ],
       temp: {},
       meta: {},
-      dialogStatus: '',
+      dialogStatus: "",
       textMap: {
-        update: '编辑',
-        create: '新增'
+        update: "编辑",
+        create: "新增"
       },
       dialogFormVisible: false,
       rules: {
         rolecode: [
-          { required: true, message: '角色编码不可为空', trigger: 'blur' }
+          { required: true, message: "角色编码不可为空", trigger: "blur" }
         ],
         rolename: [
-          { required: true, message: '角色名称不可为空', trigger: 'blur' }
+          { required: true, message: "角色名称不可为空", trigger: "blur" }
         ]
       },
       data: [],
@@ -201,72 +201,74 @@ export default {
       },
       roles: [],
       styles: {
-        width: '300px'
+        width: "300px"
       },
-      test: '',
+      test: "",
       selectParams: {
         clearable: true,
-        placeholder: '根节点'
+        placeholder: "根节点"
       },
       treeParams: {
-        'default-expand-all': true,
+        "default-expand-all": true,
         filterable: false,
-        'check-strictly': true,
-        'render-content': this._renderFun,
+        "check-strictly": true,
+        "render-content": this._renderFun,
         data: [],
         props: {
-          children: 'children',
-          label: 'title',
-          value: 'menuId'
+          children: "children",
+          label: "title",
+          value: "menuId"
         }
       }
-    }
+    };
   },
   created() {
-    this.getMenus()
-    this.getAllRole()
+    this.getMenus();
+    this.getAllRole();
   },
   methods: {
     getMenus() {
       return getAllMenu().then(response => {
-        this.data = response.data
-      })
+        this.data = response.data;
+      });
     },
     handleFilter() {
-      this.listQuery.page = 1
-      this.getList()
+      this.listQuery.page = 1;
+      this.getList();
     },
     handleCreate() {
-      this.dialogStatus = 'create'
-      this.dialogFormVisible = true
+      this.dialogStatus = "create";
+      this.dialogFormVisible = true;
       this.$nextTick(() => {
-        this.$refs['dataForm'].clearValidate()
-      })
+        this.$refs["dataForm"].clearValidate();
+      });
     },
     handleUpdate(row) {
-      this.dialogFormVisible = true
-      this.temp = Object.assign({}, row) // copy obj
-      this.meta = Object.assign({}, row.meta)
-      this.dialogStatus = 'update'
-      this.dialogFormVisible = true
+      this.dialogFormVisible = true;
+      this.temp = Object.assign({}, row); // copy obj
+      this.meta = Object.assign({}, row.meta);
+      this.dialogStatus = "update";
+      this.dialogFormVisible = true;
       this.$nextTick(() => {
-        this.$refs['dataForm'].clearValidate()
+        this.$refs["dataForm"].clearValidate();
         // this.treeParams.data = ;
-        this.$refs.treeSelect.treeDataUpdateFun(this.filterCanUseRouter(this.temp))
-        console.log(this.treeParams.data)
-      })
+        this.$refs.treeSelect.treeDataUpdateFun(
+          this.filterCanUseRouter(this.temp)
+        );
+        console.log(this.treeParams.data);
+      });
     },
     getAllRole() {
       return fetchList().then(response => {
-        this.roles = response.data.items
-      })
+        this.roles = response.data.items;
+      });
     },
     updateData() {
-      this.$refs['dataForm'].validate(valid => {
+      this.$refs["dataForm"].validate(valid => {
         if (valid) {
-          const tempData = Object.assign({}, this.temp, this.meta)
-          tempData.meta = { ...this.meta }
-          console.log(tempData)
+          const tempData = Object.assign({}, this.temp, this.meta);
+          tempData.meta = { ...this.meta };
+          console.log(tempData);
           // updateRole(tempData).then(() => {
           //   for (const v of this.list) {
           //     if (v.roleId === this.temp.roleId) {
@@ -284,51 +286,51 @@ export default {
           //   });
           // });
         }
-      })
+      });
     },
     filterCanUseRouter(menu) {
       return this.data.filter(
         f => f.menuId != menu.menuId && f.parentId != menu.menuId
-      )
+      );
     },
     // 树点击
     _nodeClickFun(data, node, vm) {
-      console.log(this.temp.parentId, data)
+      console.log(this.temp.parentId, data);
     },
     // 自定义render
     _renderFun(h, { node, data, store }) {
       return (
-        <span class='custom-tree-node'>
+        <span class="custom-tree-node">
           <span>{node.label}</span>
         </span>
-      )
+      );
     },
     updateData() {
-      this.$refs['dataForm'].validate(valid => {
+      this.$refs["dataForm"].validate(valid => {
         if (valid) {
-          const tempData = Object.assign({}, this.temp)
+          const tempData = Object.assign({}, this.temp);
           // updateRole(tempData).then(() => {
           for (const v of this.data) {
             if (v.menuId === tempData.menuId) {
-              const index = this.data.indexOf(v)
-              this.data.splice(index, 1, tempData)
-              break
+              const index = this.data.indexOf(v);
+              this.data.splice(index, 1, tempData);
+              break;
             }
           }
           // });
-          console.log(this.data)
-          this.dialogFormVisible = false
+          console.log(this.data);
+          this.dialogFormVisible = false;
           this.$notify({
-            title: '成功',
-            message: '更新成功',
-            type: 'success',
+            title: "成功",
+            message: "更新成功",
+            type: "success",
             duration: 2000
-          })
+          });
         }
-      })
+      });
     }
   }
-}
+};
 </script>
 
 <style>

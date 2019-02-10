@@ -8,6 +8,7 @@ import menuAPI from './menu'
 import roleAPI from './role'
 import useAPI from './user'
 import u8CusAPI from './u8cus'
+import u8STAPI from './u8st'
 
 // 修复在使用 MockJS 情况下，设置 withCredentials = true，且未被拦截的跨域请求丢失 Cookies 的问题
 // https://github.com/nuysoft/Mock/issues/300
@@ -64,5 +65,9 @@ Mock.mock(/\/user\/getallcustomerlist/, 'post', useAPI.getAllCustomerList)
 
 //U8客户档案
 Mock.mock(/\/u8cus\/getallu8cuslist/, 'post', u8CusAPI.getAllU8CusList)
+Mock.mock(/\/u8cus\/getu8cuslistfromtrader/, 'post', u8CusAPI.getU8CusListFromTrader)
+
+//U8ST
+Mock.mock(/\/u8st\/getallu8stlist/, 'post', u8STAPI.getAllU8StList)
 
 export default Mock
