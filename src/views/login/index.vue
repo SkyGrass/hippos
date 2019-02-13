@@ -104,7 +104,7 @@ export default {
     };
     return {
       loginForm: {
-        username: "seller",
+        username: "seller1",
         password: "123456"
       },
       loginRules: {
@@ -156,6 +156,10 @@ export default {
             })
             .catch(() => {
               this.loading = false;
+              his.$message({
+                message: message,
+                type: "warning"
+              });
             });
         } else {
           return false;

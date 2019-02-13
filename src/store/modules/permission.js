@@ -83,11 +83,13 @@ const permission = {
     }
   },
   actions: {
-    GenerateRoutes({ commit }, data) {
+    GenerateRoutes({ commit }, data) { //明天调试getMenuByRole 接口
+      debugger;
       return new Promise((resolve, reject) => {
         const { roles } = data
         let accessedRouters = []
         getMenuByRole(roles).then(response => {
+          debugger;
           let { data } = response
           data = deleteChildrenMenuRedirectPro(data)
           const serverRouterMap = generateAsyncRouter(routerMap, data)
