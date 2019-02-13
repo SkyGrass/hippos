@@ -1,5 +1,5 @@
-import { constantRouterMap, routerMap } from '@/router'
-import { getMenuByRole } from '@/api/menu'
+import { constantRouterMap, routerMap } from "@/router";
+import { getMenuByRole } from "@/api/menu";
 
 /**
  * 通过meta.role判断是否与当前用户权限匹配
@@ -8,44 +8,44 @@ import { getMenuByRole } from '@/api/menu'
  */
 function hasPermission(roles, route) {
   if (route.meta && route.meta.roles) {
-    return roles.some(role => route.meta.roles.includes(role))
+    return roles.some(role => route.meta.roles.includes(role));
   } else {
-    return true
+    return true;
   }
 }
 
 function generateAsyncRouter(routerMap, serverRouterMap) {
-  serverRouterMap.forEach(function (item, index) {
-    item.component = routerMap[item.component]
+  serverRouterMap.forEach(function(item, index) {
+    item.component = routerMap[item.component];
     if (item.children && item.children.length > 0) {
-      generateAsyncRouter(routerMap, item.children)
+      generateAsyncRouter(routerMap, item.children);
     }
-  })
-  return serverRouterMap
+  });
+  return serverRouterMap;
 }
 
 /*
-* 删除子节点下的redirect属性
-* 将meta属性中的title 提到 根属性上
-* 将isclosed 属性复制到 disabled
-* */
+ * 删除子节点下的redirect属性
+ * 将meta属性中的title 提到 根属性上
+ * 将isclosed 属性复制到 disabled
+ * */
 function deleteChildrenMenuRedirectPro(menu) {
   if (menu) {
     menu.forEach(item => {
       if (item.meta) {
-        item.title = item.meta.title
+        item.title = item.meta.title;
       }
 
-      item.disabled = item.isclosed
+      item.disabled = item.isclosed;
       item.children.forEach(child => {
-        delete child.redirect
+        delete child.redirect;
         if (menu.children && menu.children.length > 0) {
-          deleteChildrenMenuRedirectPro(child.children)
+          deleteChildrenMenuRedirectPro(child.children);
         }
-      })
-    })
+      });
+    });
 
-    return menu
+    return menu;
   }
   return undefined;
 }
@@ -56,19 +56,19 @@ function deleteChildrenMenuRedirectPro(menu) {
  * @param roles
  */
 function filterAsyncRouter(routes, roles) {
-  const res = []
+  const res = [];
 
   routes.forEach(route => {
-    const tmp = { ...route }
+    const tmp = { ...route };
     if (hasPermission(roles, tmp)) {
       if (tmp.children) {
-        tmp.children = filterAsyncRouter(tmp.children, roles)
+        tmp.children = filterAsyncRouter(tmp.children, roles);
       }
-      res.push(tmp)
+      res.push(tmp);
     }
-  })
+  });
 
-  return res
+  return res;
 }
 
 const permission = {
@@ -78,27 +78,31 @@ const permission = {
   },
   mutations: {
     SET_ROUTERS: (state, routers) => {
-      state.addRouters = routers
-      state.routers = constantRouterMap.concat(routers)
+      state.addRouters = routers;
+      state.routers = constantRouterMap.concat(routers);
     }
   },
   actions: {
-    GenerateRoutes({ commit }, data) { //明天调试getMenuByRole 接口
-      debugger;
+    GenerateRoutes({ commit }, data) {
       return new Promise((resolve, reject) => {
-        const { roles } = data
-        let accessedRouters = []
-        getMenuByRole(roles).then(response => {
-          debugger;
-          let { data } = response
-          data = deleteChildrenMenuRedirectPro(data)
-          const serverRouterMap = generateAsyncRouter(routerMap, data)
-          accessedRouters = filterAsyncRouter(serverRouterMap, roles)
-          commit('SET_ROUTERS', accessedRouters)
-          resolve()
-        }).catch(error => {
-          reject(error)
-        })
+        const { roles } = data;
+        let accessedRouters = [];
+        getMenuByRole(roles)
+          .then(response => {
+            let { data, message } = response.data;
+            if (message === `success`) {
+              data = deleteChildrenMenuRedirectPro(data);
+              const serverRouterMap = generateAsyncRouter(routerMap, data);
+              accessedRouters = filterAsyncRouter(serverRouterMap, roles);
+              commit("SET_ROUTERS", accessedRouters);
+              resolve();
+            } else {
+              reject(message);
+            }
+          })
+          .catch(error => {
+            reject(error);
+          });
 
         // let accessedRouters
         // if (roles.includes('admin')) {
@@ -108,9 +112,9 @@ const permission = {
         // }
         // commit('SET_ROUTERS', accessedRouters)
         // resolve()
-      })
+      });
     }
   }
-}
+};
 
-export default permission
+export default permission;

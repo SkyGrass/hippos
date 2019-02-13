@@ -45,7 +45,7 @@ Mock.mock(/\/search\/user/, 'get', remoteSearchAPI.searchUser)
 Mock.mock(/\/transaction\/list/, 'get', transactionAPI.getList)
 
 // 菜单权限相关
-Mock.mock(/\/menu\/getmenubyrole/, 'post', menuAPI.getAllMenuByRole)
+// Mock.mock(/\/menu\/getmenubyrole/, 'post', menuAPI.getAllMenuByRole)
 Mock.mock(/\/menu\/getallmenu/, 'post', menuAPI.getAllMenu)
 Mock.mock(/\/role\/getallmenuscanuse/, 'post', menuAPI.getAllMenuCanUse)
 

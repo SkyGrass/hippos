@@ -1,8 +1,8 @@
 import request from '@/utils/request'
 
-export function getMenuByRole(role) {
+export function getMenuByRole(roles) {
   const data = {
-    role
+    roles
   }
   return request({
     url: '/menu/getmenubyrole',
