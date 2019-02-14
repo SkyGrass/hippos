@@ -492,8 +492,8 @@ export default {
         .then(() => {
           reSetUserPwd(row)
             .then(response => {
-              const { message } = response;
-              if (message === `success`) {
+              const { state, message } = response;
+              if (state === `success`) {
                 this.$message({
                   type: "success",
                   message: "重置成功，请尽快通知用户!"

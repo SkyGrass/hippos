@@ -89,8 +89,8 @@ const permission = {
         let accessedRouters = [];
         getMenuByRole(roles)
           .then(response => {
-            let { data, message } = response.data;
-            if (message === `success`) {
+            let { data, state, message } = response.data;
+            if (state === `success`) {
               data = deleteChildrenMenuRedirectPro(data);
               const serverRouterMap = generateAsyncRouter(routerMap, data);
               accessedRouters = filterAsyncRouter(serverRouterMap, roles);

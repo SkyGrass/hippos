@@ -132,7 +132,7 @@
       </div>
       <tree-transfer
         :title="title"
-        :from_data="u8list"
+        :from_data="data"
         :to_data="toData"
         :default-props="{label:'ccusname'}"
         :mode="mode"
@@ -161,8 +161,11 @@ import {
   updateUser,
   delUser
 } from "@/api/user";
-import { fetchRoleForSelect } from "@/api/role";
-import { fetchU8CusList } from "@/api/u8cus";
+import {
+  fetchU8CusListForBind,
+  fetchU8CusListHaveBind,
+  saveTraderBindCus
+} from "@/api/u8cus";
 import waves from "@/directive/waves"; // Waves directive
 import { parseTime } from "@/utils";
 import Pagination from "@/components/Pagination"; // Secondary package based on el-pagination
@@ -177,7 +180,6 @@ export default {
       tableKey: 0,
       list: null,
       total: 0,
-      u8list: null,
       listLoading: true,
       listQuery: {
         page: 1,
@@ -188,6 +190,7 @@ export default {
       u8cuslistQuery: {
         page: 1,
         limit: 20,
+        trader: undefined,
         searchword: undefined
       },
       statusOptions: [
@@ -227,20 +230,22 @@ export default {
       title: ["尚未绑定的客户", "已选取客户"],
       data: [],
       toData: [],
-      tempData: []
+      tempData: [],
+      currentRow: {}
     };
   },
   created() {
     this.getList();
-    this.getU8CusList();
   },
   methods: {
     getList() {
       this.listLoading = true;
       fetchTraderList(this.listQuery).then(response => {
-        this.list = response.data.items;
-        this.total = response.data.total;
-
+        const { data, state, message } = response.data;
+        if (state === `success`) {
+          this.list = data.items;
+          this.total = data.total;
+        }
         // Just to simulate the time of the request
         setTimeout(() => {
           this.listLoading = false;
@@ -335,22 +340,34 @@ export default {
     },
     handlerShowCus(row) {
       this.dialogFormCus = true;
+      this.currentRow = Object.assign({}, row);
+      this.getU8CusList(this.currentRow);
     },
-    getU8CusList() {
+    getU8CusList(row) {
       this.u8cuslistLoading = true;
-      fetchU8CusList(this.u8cuslistQuery).then(response => {
-        this.u8list = response.data.items;
-        this.u8total = response.data.total;
+      fetchU8CusListForBind(this.u8cuslistQuery).then(response => {
+        const { data, state, message } = response.data;
+        if (state === `success`) {
+          this.data = data.items;
+        }
 
         // Just to simulate the time of the request
         setTimeout(() => {
           this.u8cuslistLoading = false;
         }, 1.5 * 1000);
       });
+      const { username } = row;
+      this.currentTrader = username;
+      fetchU8CusListHaveBind({ trader: username }).then(response => {
+        const { data, state, message } = response.data;
+        if (state === `success`) {
+          this.toData = data.items;
+        }
+      });
     },
     handleU8Filter() {
       this.u8cuslistQuery.page = 1;
-      this.getU8CusList();
+      this.getU8CusList(this.currentRow);
     },
     // 监听穿梭框组件添加
     add(fromData, toData, obj) {
@@ -361,7 +378,40 @@ export default {
       this.tempData = toData;
     },
     handlerCus() {
-      console.log(this.tempData);
+      //saveTraderBindCus
+      let temp = [...this.tempData];
+      const title =
+        temp.length <= 0
+          ? `此操作将清空此经销商全部的绑定客户,是否继续?`
+          : `此操作将绑定此经销商和客户,是否继续?`;
+      this.$confirm(title, "提示", {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        type: "warning"
+      })
+        .then(() => {
+          saveTraderBindCus({
+            trader: this.currentRow.username,
+            list: temp.map(m => {
+              var t = {};
+              t.trader = this.currentTrader;
+              t.customer = m.ccuscode;
+              return t;
+            })
+          })
+            .then(response => {
+              const { data, state, message } = response.data;
+              this.dialogFormCus = false;
+              this.$notify({
+                title: state === `success` ? "成功" : "失败",
+                message: message,
+                type: state,
+                duration: 2000
+              });
+            })
+            .catch(() => {});
+        })
+        .catch(() => {});
     }
   }
 };

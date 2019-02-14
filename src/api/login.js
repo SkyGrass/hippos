@@ -12,10 +12,14 @@ export function loginByUsername(username, password) {
   });
 }
 
-export function logout() {
+export function logout(token) {
+  const data = {
+    token
+  };
   return request({
     url: "/auth/logout",
-    method: "post"
+    method: "post",
+    data
   });
 }
 

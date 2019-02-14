@@ -117,14 +117,19 @@ export default {
         page: 1,
         limit: 20
       },
-      temp: {},
+      temp: {
+        roleId: ``,
+        rolecode: ``,
+        rolename: ``,
+        isclosed: false,
+        roledescription: ``
+      },
       dialogStatus: "",
       textMap: {
         update: "编辑",
         create: "新增"
       },
       dialogFormVisible: false,
-      dialogFormMenu: false,
       rules: {
         rolecode: [
           { required: true, message: "角色编码不可为空", trigger: "blur" }
@@ -137,14 +142,16 @@ export default {
   },
   created() {
     this.getList();
-    this.getMenus();
   },
   methods: {
     getList() {
       this.listLoading = true;
       return fetchList().then(response => {
-        this.list = response.data.items;
-        this.total = response.data.total;
+        const { data, state, message } = response.data;
+        if (state === `success`) {
+          this.list = data.items;
+          this.total = data.total;
+        }
         setTimeout(() => {
           this.listLoading = false;
         }, 1.5 * 1000);
@@ -153,6 +160,7 @@ export default {
     handleCreate() {
       this.dialogStatus = "create";
       this.dialogFormVisible = true;
+      this.temp = {};
       this.$nextTick(() => {
         this.$refs["dataForm"].clearValidate();
       });
@@ -160,14 +168,18 @@ export default {
     createData() {
       this.$refs["dataForm"].validate(valid => {
         if (valid) {
-          this.temp.roleId = parseInt(Math.random() * 100) + 1024; // mock a id
-          createRole(this.temp).then(() => {
-            this.list.unshift(this.temp);
+          const form = Object.assign({}, this.temp);
+          createRole(form).then(response => {
+            const { state, message, data } = response.data;
+            if (state === `success`) {
+              this.list.unshift(data);
+            }
+
             this.dialogFormVisible = false;
             this.$notify({
-              title: "成功",
-              message: "创建成功",
-              type: "success",
+              title: state === `success` ? "成功" : "失败",
+              message: message,
+              type: state,
               duration: 2000
             });
           });
@@ -188,19 +200,23 @@ export default {
       this.$refs["dataForm"].validate(valid => {
         if (valid) {
           const tempData = Object.assign({}, this.temp);
-          updateRole(tempData).then(() => {
-            for (const v of this.list) {
-              if (v.roleId === this.temp.roleId) {
-                const index = this.list.indexOf(v);
-                this.list.splice(index, 1, this.temp);
-                break;
+          updateRole(tempData).then(response => {
+            const { state, message } = response.data;
+            if (state === `success`) {
+              for (const v of this.list) {
+                if (v.roleId === this.temp.roleId) {
+                  const index = this.list.indexOf(v);
+                  this.list.splice(index, 1, this.temp);
+                  break;
+                }
               }
             }
+
             this.dialogFormVisible = false;
             this.$notify({
-              title: "成功",
-              message: "更新成功",
-              type: "success",
+              title: state === `success` ? "成功" : "失败",
+              message: message,
+              type: state,
               duration: 2000
             });
           });
@@ -208,34 +224,26 @@ export default {
       });
     },
     handleDelete(row) {
-      delRole(row).then(() => {
-        row.isclosed = !row.isclosed;
-        this.$notify({
-          title: "成功",
-          message: "更新成功",
-          type: "success",
-          duration: 2000
-        });
-      });
-    },
-    // 监听穿梭框组件添加
-    add(fromData, toData, obj) {
-      this.tempData = toData;
-    },
-    // 监听穿梭框组件移除
-    remove(fromData, toData, obj) {
-      this.tempData = toData;
-    },
-    getMenus() {
-      return getAllMenu().then(response => {
-        const { data } = response;
-        this.data = [...data].splice(0, 2);
-        this.toData = [...data].splice(2, 1);
-        this.tempData = this.toData;
-      });
-    },
-    handlerMenu() {
-      console.log(this.tempData);
+      const title = row.isclosed ? "启用" : "停用";
+      this.$confirm(`此操作将${title}此角色, 是否继续?`, "提示", {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        type: "warning"
+      })
+        .then(() => {
+          const { roleId } = row;
+          delRole({ roleId }).then(response => {
+            const { state, message } = response.data;
+            this.$notify({
+              title: state === `success` ? "成功" : "失败",
+              message: `${title}成功`,
+              type: state,
+              duration: 2000
+            });
+            row.isclosed = state === `success` && !row.isclosed;
+          });
+        })
+        .catch(() => {});
     }
   }
 };

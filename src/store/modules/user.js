@@ -54,8 +54,8 @@ const user = {
       return new Promise((resolve, reject) => {
         loginByUsername(username, userInfo.password)
           .then(response => {
-            const { data, message } = response.data;
-            if (message === `success`) {
+            const { data, state, message } = response.data;
+            if (state === `success`) {
               commit("SET_TOKEN", data.token);
               setToken(data.token);
               resolve();
@@ -78,8 +78,8 @@ const user = {
             if (!response.data) {
               reject("Verification failed, please login again.");
             }
-            const { data, message } = response.data;
-            if (message === `success`) {
+            const { data, state, message } = response.data;
+            if (state === `success`) {
               if (data.roles && data.roles.length > 0) {
                 // 验证返回的roles是否是一个非空数组
                 commit("SET_ROLES", data.roles);

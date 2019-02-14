@@ -131,7 +131,7 @@
             <el-option
               v-for="item in roleOptions"
               :key="item.key"
-              :label="item.display_name"
+              :label="item.display_name+'('+item.key+')'"
               :value="item.key"
             />
           </el-select>
@@ -140,17 +140,13 @@
           <el-input v-model="temp.name"/>
         </el-form-item>
         <el-form-item label="用户名" prop="username">
-          <el-input v-model="temp.username"/>
+          <el-input v-model="temp.username" :disabled="canEdit()"/>
         </el-form-item>
         <el-form-item label="是否停用">
           <el-checkbox v-model="temp.isclosed"/>
         </el-form-item>
-        <el-form-item
-          v-if="temp.role === 'customer' || temp.role ==='trader'"
-          label="U8客户编码"
-          prop="cuscode"
-        >
-          <el-input v-model="temp.cuscode" readonly disabled placeholder="选取要绑定的U8客户">
+        <el-form-item v-if="temp.role === 'customer'" label="U8客户编码" prop="cuscode">
+          <el-input v-model="temp.cuscode" clearable placeholder="选取要绑定的U8客户">
             <el-button slot="append" icon="el-icon-search" @click="handlerCus()"></el-button>
           </el-input>
         </el-form-item>
@@ -223,7 +219,13 @@
 </template>
 
 <script>
-import { fetchList, createUser, updateUser, reSetUserPwd } from "@/api/user";
+import {
+  fetchList,
+  createUser,
+  updateUser,
+  reSetUserPwd,
+  delUser
+} from "@/api/user";
 import { fetchU8CusList } from "@/api/u8cus";
 import { fetchRoleForSelect } from "@/api/role";
 import waves from "@/directive/waves"; // Waves directive
@@ -301,12 +303,17 @@ export default {
     this.getRoleForSelect();
   },
   methods: {
+    canEdit() {
+      return this.dialogStatus === `update`;
+    },
     getList() {
       this.listLoading = true;
       fetchList(this.listQuery).then(response => {
-        this.list = response.data.items;
-        this.total = response.data.total;
-
+        const { data, state, message } = response.data;
+        if (state === `success`) {
+          this.list = data.items;
+          this.total = data.total;
+        }
         // Just to simulate the time of the request
         setTimeout(() => {
           this.listLoading = false;
@@ -316,9 +323,11 @@ export default {
     getU8CusList() {
       this.u8cuslistLoading = true;
       fetchU8CusList(this.u8cuslistQuery).then(response => {
-        this.u8list = response.data.items;
-        this.u8total = response.data.total;
-
+        const { data, state, message } = response.data;
+        if (state === `success`) {
+          this.u8list = data.items;
+          this.u8total = data.total;
+        }
         // Just to simulate the time of the request
         setTimeout(() => {
           this.u8cuslistLoading = false;
@@ -327,7 +336,8 @@ export default {
     },
     getRoleForSelect() {
       fetchRoleForSelect().then(response => {
-        this.roleOptions = response.data;
+        const { state, data, message } = response.data;
+        this.roleOptions = data;
       });
     },
     handleFilter() {
@@ -356,14 +366,18 @@ export default {
     createData() {
       this.$refs["dataForm"].validate(valid => {
         if (valid) {
-          this.temp.userId = parseInt(Math.random() * 100) + 1024; // mock a id
-          createUser(this.temp).then(() => {
-            this.list.unshift(this.temp);
+          // this.temp.userId = parseInt(Math.random() * 100) + 1024; // mock a id
+          const form = Object.assign({}, this.temp);
+          createUser(form).then(response => {
+            const { data, state, message } = response.data;
+            if (state === `success`) {
+              this.list.unshift(data);
+            }
             this.dialogFormVisible = false;
             this.$notify({
-              title: "成功",
-              message: "创建成功",
-              type: "success",
+              title: state === `success` ? "成功" : "失败",
+              message: message,
+              type: state,
               duration: 2000
             });
           });
@@ -382,33 +396,57 @@ export default {
       this.$refs["dataForm"].validate(valid => {
         if (valid) {
           const tempData = Object.assign({}, this.temp); // change Thu Nov 30 2017 16:41:05 GMT+0800 (CST) to 1512031311464
-          updateUser(tempData).then(() => {
-            for (const v of this.list) {
-              if (v.userId === this.temp.userId) {
-                const index = this.list.indexOf(v);
-                this.list.splice(index, 1, this.temp);
-                break;
+          updateUser(tempData).then(response => {
+            const { state, message } = response.data;
+            if (state === `success`) {
+              for (const v of this.list) {
+                if (v.userId === this.temp.userId) {
+                  const index = this.list.indexOf(v);
+                  if (this.temp.role != "customer") this.temp.cuscode = "";
+                  this.list.splice(index, 1, this.temp);
+                  break;
+                }
               }
+              this.dialogFormVisible = false;
+              this.$notify({
+                title: "成功",
+                message: "更新成功",
+                type: "success",
+                duration: 2000
+              });
+            } else {
+              this.$notify({
+                title: "失败",
+                message: message,
+                type: "error",
+                duration: 2000
+              });
             }
-            this.dialogFormVisible = false;
-            this.$notify({
-              title: "成功",
-              message: "更新成功",
-              type: "success",
-              duration: 2000
-            });
           });
         }
       });
     },
     handleDelete(row) {
-      this.$notify({
-        title: "成功",
-        message: `${row.isclosed ? "启用" : "停用"}成功`,
-        type: "success",
-        duration: 2000
-      });
-      row.isclosed = !row.isclosed;
+      const title = row.isclosed ? "启用" : "停用";
+      this.$confirm(`此操作将${title}此用户, 是否继续?`, "提示", {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        type: "warning"
+      })
+        .then(() => {
+          const { userId } = row;
+          delUser({ userId }).then(response => {
+            const { state, message } = response.data;
+            this.$notify({
+              title: state === `success` ? "成功" : "失败",
+              message: `${title}成功`,
+              type: state,
+              duration: 2000
+            });
+            row.isclosed = state === `success` && !row.isclosed;
+          });
+        })
+        .catch(() => {});
     },
     formatJson(filterVal, jsonData) {
       return jsonData.map(v =>
@@ -436,10 +474,11 @@ export default {
         type: "warning"
       })
         .then(() => {
-          reSetUserPwd(row)
+          const { userId } = row;
+          reSetUserPwd({ userId })
             .then(response => {
-              const { message } = response;
-              if (message === `success`) {
+              const { state, message } = response.data;
+              if (state === `success`) {
                 this.$message({
                   type: "success",
                   message: "重置成功，请尽快通知用户!"
