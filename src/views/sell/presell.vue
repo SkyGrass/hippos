@@ -23,13 +23,13 @@
               v-model="orderForm.FDate"
               type="date"
               placeholder="选择日期"
-              :picker-options="pickerOptionsStart"
+              :disabled="canEdit"
             ></el-date-picker>
           </el-form-item>
         </el-col>
-        <el-col :span="6">
+        <el-col :span="6" v-if="judgeRole()">
           <el-form-item label="经销商" prop="FDealerCode">
-            <el-input class="fixitem" v-model="orderForm.FDealerCode" v-bind:disabled="judgeRole()"></el-input>
+            <el-input class="fixitem" v-model="orderForm.FDealerCode" disabled></el-input>
           </el-form-item>
         </el-col>
         <el-col :span="6">
@@ -41,6 +41,7 @@
               clearable
               filterable
               :filter-method="filterU8"
+              :disabled="canEdit"
             >
               <el-option
                 v-for="item in u8List"
@@ -56,7 +57,12 @@
       <el-row>
         <el-col :span="6">
           <el-form-item label="销售类型" prop="FSTCode" required>
-            <el-select class="fixitem" v-model="orderForm.FSTCode" placeholder="请选择销售类型">
+            <el-select
+              class="fixitem"
+              v-model="orderForm.FSTCode"
+              placeholder="请选择销售类型"
+              :disabled="canEdit"
+            >
               <el-option
                 v-for="item in u8StList"
                 v-bind:key="item.cstcode"
@@ -74,12 +80,13 @@
               :step="1"
               :min="0"
               :max="100"
+              :disabled="canEdit"
             ></el-input-number>
           </el-form-item>
         </el-col>
         <el-col :span="6">
-          <el-form-item label="制单人" prop="FBillerId">
-            <el-input class="fixitem" v-model="orderForm.FBillerId" disabled></el-input>
+          <el-form-item label="制单人" prop="FBiller">
+            <el-input class="fixitem" v-model="orderForm.FBiller" disabled></el-input>
           </el-form-item>
         </el-col>
         <el-col :span="6">
@@ -91,18 +98,6 @@
               <el-option label="关闭" value="3"></el-option>
             </el-select>
           </el-form-item>
-        </el-col>
-      </el-row>
-      <el-row>
-        <el-col :span="24">
-          <!-- <el-form-item label="备注" prop="Fremark" label-width="0"> -->
-          <el-input
-            placeholder="请输入预订单的备注"
-            style="width:81vw"
-            type="textarea"
-            v-model="orderForm.Fremark"
-          ></el-input>
-          <!-- </el-form-item> -->
         </el-col>
       </el-row>
       <el-row v-if="orderForm.FStatus !=='0'">
@@ -130,19 +125,50 @@
           </el-form-item>
         </el-col>
       </el-row>
-      <!-- <el-form-item>
-        <el-button type="primary" @click="submitForm('orderForm')">立即创建</el-button>
-        <el-button @click="resetForm('orderForm')">重置</el-button>
-      </el-form-item>-->
+      <el-row>
+        <el-col :span="24">
+          <!-- <el-form-item label="备注" prop="Fremark" label-width="0"> -->
+          <el-input
+            placeholder="请输入预订单的备注"
+            style="width:81vw"
+            type="textarea"
+            v-model="orderForm.Fremark"
+          ></el-input>
+          <!-- </el-form-item> -->
+        </el-col>
+      </el-row>
     </el-form>
 
-    <el-button-group style="margin-top:20px">
-      <el-button type="primary" icon="el-icon-plus" @click="addRow">增行</el-button>
-      <el-button type="primary" icon="el-icon-delete" @click="clearRow">清空行</el-button>
-      <el-button type="primary" icon="el-icon-edit" @click="editForm">编辑订单</el-button>
-      <el-button type="primary" icon="el-icon-check" @click="saveForm">保存订单</el-button>
+    <el-button-group style="margin-top:20px" v-permission="['customer','trader']">
+      <el-button
+        type="primary"
+        icon="el-icon-plus"
+        @click="addRow"
+        v-if="this.formStatus !== `look`"
+      >增行</el-button>
+      <el-button
+        type="primary"
+        icon="el-icon-delete"
+        @click="clearRow"
+        v-if="this.formStatus !== `look`"
+      >清空行</el-button>
+      <el-button
+        type="danger"
+        icon="el-icon-edit"
+        @click="editForm"
+        v-if="this.formStatus === `look`"
+        :disabled="haveAudit()"
+      >编辑订单</el-button>
+      <el-button
+        type="warning"
+        icon="el-icon-check"
+        @click="saveForm"
+        v-if="this.formStatus !== `look`"
+      >保存订单</el-button>
     </el-button-group>
-
+    <el-button-group style="margin-top:20px" v-permission="['seller']">
+      <el-button type="danger" icon="el-icon-circle-check-outline" @click="AuditForm">审批订单</el-button>
+    </el-button-group>
     <el-table
       v-loading="listLoading"
       :data="list"
@@ -162,6 +188,7 @@
             size="mini"
             style="width:40px"
             icon="el-icon-delete"
+            :disabled="canEdit"
             @click="delRow(scope.$index)"
           ></el-button>
           <el-button
@@ -170,6 +197,7 @@
             size="mini"
             style="width:40px"
             icon="el-icon-circle-check-outline"
+            :disabled="canEdit"
             @click="confirmEdit(scope.row)"
           ></el-button>
           <el-button
@@ -178,6 +206,7 @@
             size="mini"
             style="width:40px"
             icon="el-icon-edit"
+            :disabled="canEdit"
             @click="scope.row.edit=!scope.row.edit"
           ></el-button>
         </template>
@@ -190,9 +219,11 @@
               placeholder="输入存货编码/名称 回车检索"
               v-model="scope.row.FInvCode"
               class="input-with-select"
-              @keyup.enter.native="onSearch"
+              @focus="changeCurrentRow(scope.$index)"
+              @blur="onSearch(scope.row)"
+              @keyup.enter.native="onSearch(scope.row)"
             >
-              <el-button slot="append" icon="el-icon-search" @click="showInvList(scope.$index)"></el-button>
+              <el-button slot="append" icon="el-icon-search" @click="showInvList(scope)"></el-button>
             </el-input>
           </template>
           <span v-else>{{ scope.row.FInvCode }}</span>
@@ -339,7 +370,7 @@
       </el-table-column>
     </el-table>
 
-    <el-dialog :visible.sync="dialogInvVisible" title="存货列表" v-el-drag-dialog width="70%">
+    <el-dialog :visible.sync="dialogInvVisible" title="存货列表" v-el-drag-dialog width="60%">
       <div class="filter-container">
         <el-input
           v-model="listQuery.searchword"
@@ -435,23 +466,25 @@
 </template>
 
 <script>
-import { fetchU8CusListFromTrader } from "@/api/u8cus";
+import { fetchU8CusListHaveBind, fetchU8CusListWithCode } from "@/api/u8cus";
 import { fetchU8StList } from "@/api/u8st";
 import { fetchInvList, fetchCusInvList } from "@/api/inv";
-import { getPreSellBillNo } from "@/api/presell";
+import { getPreSellBillNo, savePreSell, getPreSellInfo } from "@/api/presell";
 import waves from "@/directive/waves"; // Waves directive
 import Pagination from "@/components/Pagination"; // Secondary package based on el-pagination
+import permission from "@/directive/permission/index.js"; // 权限判断指令
 import elDragDialog from "@/directive/el-dragDialog"; // base on element-ui
 import { Calc } from "calc-js";
 import { getFirstTime } from "@/utils";
 export default {
   name: `presell`,
   components: { Pagination },
-  directives: { waves, elDragDialog },
+  directives: { waves, elDragDialog, permission },
   data() {
     return {
       tableKey: 0,
       formStatus: `add`,
+      canEdit: true,
       orderForm: {
         FID: "",
         FType: "",
@@ -461,7 +494,7 @@ export default {
         FCustCode: "",
         FDealerCode: "",
         FTaxRate: 16,
-        FBillerId: "",
+        FBiller: "",
         FVerifier: "",
         FVerifyDate: "",
         Fremark: "",
@@ -470,8 +503,8 @@ export default {
       },
       entryForm: {
         edit: true,
-        FEntryID: "",
-        FID: "",
+        FEntryID: 0,
+        FID: 0,
         FNo: "1",
         FInvCode: "",
         FInvName: "",
@@ -479,23 +512,33 @@ export default {
         FInvUnitCode: "",
         FInvUnitName: "",
         FQty: 0,
-        FPlanPrice: "",
-        FTaxPrice: "",
-        FPrice: "",
-        FAmount: "",
-        FTaxRate: "",
-        FDisAmount: "",
-        FSum: "",
+        FPlanPrice: 0.0,
+        FTaxPrice: 0.0,
+        FPrice: 0.0,
+        FAmount: 0.0,
+        FTaxRate: 16,
+        FDisAmount: 0.0,
+        FSum: 0.0,
         FRequestDate: "",
         FProject: "",
-        FEntryRemarke: "",
+        FEntryRemark: "",
         FRowState: "",
-        FPrice2: "",
-        FAmount2: "",
-        FTaxPrice2: "",
-        FSum2: ""
+        FPrice2: 0.0,
+        FAmount2: 0.0,
+        FTaxPrice2: 0.0,
+        FSum2: 0.0
       },
-      rules: {},
+      rules: {
+        FBillNo: [
+          { required: true, message: "单号不可无空!", trigger: "change" }
+        ],
+        FCustCode: [
+          { required: true, message: "客户不可无空!", trigger: "change" }
+        ],
+        FSTCode: [
+          { required: true, message: "销售类型不可无空!", trigger: "change" }
+        ]
+      },
       list: [],
       u8List: [],
       u8ListCopy: [],
@@ -525,6 +568,11 @@ export default {
     };
   },
   watch: {
+    formStatus: {
+      handler: function(nv) {
+        this.canEdit = nv === `look`;
+      }
+    },
     "orderForm.FCustCode": {
       handler: function(nv) {
         this.listQuery.ccuscode = nv;
@@ -553,23 +601,6 @@ export default {
     }
   },
   methods: {
-    getFormEntry() {
-      this.listLoading = false;
-    },
-    submitForm(formName) {
-      this.$refs[formName].validate(valid => {
-        if (valid) {
-          alert("submit!");
-        } else {
-          console.log("error submit!!");
-          return false;
-        }
-      });
-      console.log(this.orderForm);
-    },
-    resetForm(formName) {
-      this.$refs[formName].resetFields();
-    },
     judgeRole() {
       return this.currentRole == "trader";
     },
@@ -585,45 +616,70 @@ export default {
     confirmEdit(row) {
       row.edit = false;
       this.$message({
-        message: "The title has been edited",
+        message: `行${row.FNo}被确认!`,
         type: "success"
       });
     },
-    choose(item) {
-      console.log(item);
-    },
-    showInvList(row) {
+    showInvList(scope) {
       this.dialogInvVisible = !this.dialogInvVisible;
-      this.getInvList(row);
+      this.currentRow = scope.$index;
+      this.getInvList(scope.row);
     },
     handleFilter() {
       this.listQuery.page = 1;
       this.getInvList();
     },
-    onSearch() {
-      fetchInvList(this.listQuery).then(response => {
-        const { items } = response.data;
-        const _data = [Object.assign({}, items.shift())];
-        this.confirm(_data);
-      });
+    changeCurrentRow(rowIndex) {
+      this.currentRow = rowIndex;
+    },
+    onSearch(row) {
+      if (row.FInvCode === ``) return;
+      else {
+        fetchInvList(
+          Object.assign({}, this.listQuery, { searchword: row.FInvCode })
+        ).then(response => {
+          const { data, state, message } = response.data;
+          if (state === `success`) {
+            if (data.items.length > 0) {
+              const _data = [Object.assign({}, data.items.shift())];
+              this.confirm(_data);
+            } else {
+              const _data = [Object.assign({}, this.orderForm)];
+              this.confirm(_data);
+              this.$notify({
+                title: "提示",
+                message: "没有查询到数据!",
+                type: "warning",
+                duration: 2000
+              });
+            }
+          } else {
+            this.$notify({
+              title: "错误",
+              message: message,
+              type: "warning",
+              duration: 2000
+            });
+          }
+        });
+      }
     },
     getInvList(row) {
       this.invListLoading = true;
-      this.currentRow = row;
       fetchInvList(this.listQuery).then(response => {
-        this.invList = response.data.items;
-        this.invTotal = response.data.total;
+        const { data, state, message } = response.data;
+        if (state === `success`) {
+          this.invList = data.items;
+          this.invTotal = data.total;
+        }
         // Just to simulate the time of the request
         setTimeout(() => {
           this.invListLoading = false;
         }, 1.5 * 1000);
       });
     },
-    handleSelectionChange(val) {
-      this.multipleSelection = val;
-    },
     confirm(data) {
-      const selected = data //|| [...this.multipleSelection];
+      const selected = data; //|| [...this.multipleSelection];
       // console.log(selected);
       if (selected.length > 0) {
         selected.forEach((f, i) => {
@@ -703,7 +759,10 @@ export default {
     },
     addRow() {
       this.list.push(
-        Object.assign({}, this.entryForm, { FNo: this.list.length + 1 })
+        Object.assign({}, this.entryForm, {
+          FNo: this.list.length + 1,
+          FID: this.formStatus == "add" ? 0 : this.orderForm.FID
+        })
       );
       return this.list.length - 1;
     },
@@ -717,7 +776,7 @@ export default {
           this.list.splice(row, 1);
           this.reCalcRowNo();
         })
-        .catch();
+        .catch(() => {});
     },
     clearRow() {
       this.$confirm(`清空表格全部行, 是否继续?`, "提示", {
@@ -731,29 +790,205 @@ export default {
         })
         .catch(() => {});
     },
-    editForm() {},
-    saveForm() {},
+    editForm() {
+      this.$confirm(`此操作将编辑此预订单, 是否继续?`, "提示", {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        type: "warning"
+      })
+        .then(() => {
+          this.formStatus = `edit`;
+        })
+        .catch(() => {});
+    },
+    cancelEditForm() {
+      this.formStatus = `look`;
+    },
+    beforSaveForm() {
+      const temp = [...this.list];
+      return (
+        temp.length > 0 &&
+        temp.some(f => !f.edit && f.FInvCode !== `` && f.FRequestDate !== ``)
+      );
+    },
+    saveForm() {
+      if (this.beforSaveForm()) {
+        this.$refs["orderForm"].validate(valid => {
+          if (valid) {
+            const postForm = Object.assign(
+              {},
+              { state: this.formStatus },
+              { form: this.orderForm },
+              { list: this.list }
+            );
+            this.$confirm(`此操作将提交您的编辑, 是否继续?`, "提示", {
+              confirmButtonText: "确定",
+              cancelButtonText: "取消",
+              type: "warning"
+            })
+              .then(() => {
+                savePreSell(postForm)
+                  .then(response => {
+                    const { data, message, state } = response.data;
+                    if (state === `success`) {
+                      this.formStatus = `look`;
+                      this.$router.push({
+                        path: `/presell`,
+                        query: {
+                          id: data
+                        }
+                      });
+                    }
+                    this.$notify({
+                      title: state === `success` ? "成功" : "错误",
+                      message: message,
+                      type: state === `success` ? "success" : "warning",
+                      duration: 2000
+                    });
+                  })
+                  .catch(error => {
+                    console.log(error);
+                  });
+              })
+              .catch(() => {});
+          }
+        });
+      } else {
+        this.$notify({
+          title: "错误",
+          message:
+            "表单部分行尚未被确认或者表单信息不完整! \n 注意：存货编码或者到期时间不可为空",
+          type: "warning",
+          duration: 2000
+        });
+      }
+    },
     reCalcRowNo() {
       this.list.forEach((f, i) => {
         f.FNo = i + 1;
       });
+    },
+    getPreSellInfo(fid) {
+      getPreSellInfo({ id: fid })
+        .then(response => {
+          const { data, message, state } = response.data;
+          if (state === `success`) {
+            this.orderForm = data.form;
+            this.list = data.list.map(m => {
+              let t = m;
+              t.edit = false;
+              return t;
+            });
+            this.formStatus = `look`;
+            setTimeout(() => {
+              this.listLoading = false;
+            }, 1.5 * 1000);
+          }
+        })
+        .catch(() => {});
+    },
+    AuditForm() {
+      if (this.orderForm.FStatus == `0`) {
+        this.$confirm(`此操作将提交审批此预订单, 是否继续?`, "提示", {
+          confirmButtonText: "确定",
+          cancelButtonText: "取消",
+          type: "warning"
+        })
+          .then(() => {
+            this.orderForm.FStatus = `2`;
+            this.orderForm.FVerifyDate = new Date();
+            this.orderForm.FVerifier = this.$store.getters.username;
+            this.orderForm.FU8BillNo = `0000000000`;
+            this.$notify({
+              title: "成功",
+              message: "审批完成!请到U8系统中查看!",
+              type: "success",
+              duration: 2000
+            });
+          })
+          .catch(() => {});
+      } else {
+        this.$notify({
+          title: "错误",
+          message: "已完成审批!",
+          type: " ",
+          duration: 2000
+        });
+      }
+    },
+    haveAudit() {
+      return this.orderForm.FStatus > 0;
     }
   },
-  created() {
+  mounted() {
+    //通过是否传入ID判断当前表单状态是新增还是编辑
     this.currentRole = [...this.$store.getters.roles].shift();
-    this.orderForm.FBillerId = this.$store.getters.username;
-    if (this.currentRole == `trader`) {
-      this.orderForm.FDealerCode = this.$store.getters.username;
-      fetchU8CusListFromTrader({ trader: this.$store.getters.username })
+    if (this.$route.query.id) {
+      this.getPreSellInfo(this.$route.query.id);
+    } else {
+      if (this.currentRole == `trader`) {
+        this.orderForm.FDealerCode = this.$store.getters.username;
+      }
+      if (this.currentRole == `customer`) {
+        this.orderForm.FCustCode = this.$store.getters.cuscode;
+      }
+      this.orderForm.FBiller = this.$store.getters.username;
+      getPreSellBillNo()
         .then(response => {
-          this.u8List = response.data.items;
-          this.u8ListCopy = response.data.items;
+          const { data, state, message } = response.data;
+          if (state === `success`) {
+            const { billNo, date } = data;
+            setTimeout(() => {
+              this.listLoading = false;
+            }, 1.5 * 1000);
+            this.canEdit = false;
+            this.orderForm.FBillNo = billNo;
+            this.orderForm.FDate = date;
+            this.pickerOptionsStartForRequest = {
+              disabledDate(time) {
+                return time.getTime() <= new Date(date).getTime();
+              }
+            };
+          }
+        })
+        .catch(error => {});
+    }
+    if (this.currentRole == `trader`) {
+      fetchU8CusListHaveBind({ trader: this.$store.getters.username })
+        .then(response => {
+          const { data, message, state } = response.data;
+          if (state === `success`) {
+            this.u8List = data.items;
+            this.u8ListCopy = data.items;
+
+            // if (this.formStatus === `add`)
+            //   this.orderForm.FCustCode = [...data.items].shift().ccuscode;
+          }
         })
         .catch(() => {});
     }
+    if (this.currentRole == `customer`) {
+      fetchU8CusListWithCode({ cuscode: this.orderForm.FCustCode })
+        .then(response => {
+          const { data, message, state } = response.data;
+          if (state === `success`) {
+            this.u8List = data.items;
+            this.u8ListCopy = data.items;
+
+            // if (this.formStatus === `add`)
+            //   this.orderForm.FCustCode = [...data.items].shift().ccuscode;
+          }
+        })
+        .catch(() => {});
+    }
+
     fetchU8StList().then(response => {
-      this.u8StList = response.data.items;
-      this.orderForm.FSTCode = [...response.data.items].shift().cstcode;
+      const { data, message, state } = response.data;
+      if (state === `success`) {
+        this.u8StList = data.items;
+      }
+      // if (this.formStatus === `add`)
+      //   this.orderForm.FSTCode = [...data.items].shift().cstcode;
     });
     this.entryForm.FTaxRate = this.orderForm.FTaxRate;
     this.list.push(
@@ -761,31 +996,6 @@ export default {
         FNo: this.list.length + 1
       })
     );
-  },
-  mounted() {
-    //通过是否传入ID判断当前表单状态是新增还是编辑
-    if (this.$route.params.id) {
-      // eidt
-      console.log(1);
-      //this.getFormEntry();
-    } else {
-      //add
-      getPreSellBillNo()
-        .then(response => {
-          const { billNo, date } = response.data;
-
-          this.orderForm.FBillNo = billNo;
-          this.orderForm.FDate = date;
-          this.pickerOptionsStartForRequest = {
-            disabledDate(time) {
-              return time.getTime() <= new Date(date).getTime();
-            }
-          };
-        })
-        .catch(error => {});
-    }
-
-    this.getFormEntry();
   }
 };
 </script>

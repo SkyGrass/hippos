@@ -11,6 +11,7 @@ const user = {
     name: "",
     avatar: "",
     introduction: "",
+    cuscode:"",
     roles: [],
     setting: {
       articlePlatform: []
@@ -44,6 +45,9 @@ const user = {
     },
     SET_ROLES: (state, roles) => {
       state.roles = roles;
+    },
+    SET_CUSCODE: (state, cuscode) => {
+      state.cuscode = cuscode;
     }
   },
 
@@ -90,6 +94,7 @@ const user = {
               commit("SET_USERNAME", data.username);
               commit("SET_AVATAR", data.avatar);
               commit("SET_INTRODUCTION", data.introduction);
+              commit("SET_CUSCODE", data.cuscode);
               resolve(response);
             } else {
               reject(message);

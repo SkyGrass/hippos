@@ -74,13 +74,13 @@ Mock.mock(
 );
 
 //U8ST
-Mock.mock(/\/u8st\/getallu8stlist/, "post", u8STAPI.getAllU8StList);
+// Mock.mock(/\/u8st\/getallu8stlist/, "post", u8STAPI.getAllU8StList);
 
 //inv
-Mock.mock(/\/inv\/getinvlist/, "post", invAPI.getInvtList);
+// Mock.mock(/\/inv\/getinvlist/, "post", invAPI.getInvtList);
 Mock.mock(/\/inv\/getcusinvlist/, "post", invAPI.getCusInvtList);
 
 //presell
-Mock.mock(/\/presell\/getpresellbillno/, "post", presellAPI.getPreSellBillNo);
+// Mock.mock(/\/presell\/getpresellbillno/, "post", presellAPI.getPreSellBillNo);
 
 export default Mock;

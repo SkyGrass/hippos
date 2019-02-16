@@ -104,7 +104,7 @@ export default {
     };
     return {
       loginForm: {
-        username: "admin",
+        username: "trader",
         password: "123456"
       },
       loginRules: {
@@ -154,10 +154,10 @@ export default {
               // this.$router.push({ path: this.redirect || "/" });
               this.$router.push({ path: "/" });
             })
-            .catch(() => {
+            .catch(error => {
               this.loading = false;
-              his.$message({
-                message: message,
+              this.$message({
+                message: error,
                 type: "warning"
               });
             });

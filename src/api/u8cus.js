@@ -7,6 +7,14 @@ export function fetchU8CusList(data) {
     data
   });
 }
+export function fetchU8CusListWithCode(data) {
+  return request({
+    url: "/u8cus/getallu8cuslistwithcode",
+    method: "post",
+    data
+  });
+}
+
 export function fetchU8CusListForBind(data) {
   return request({
     url: "/u8cus/getallu8cuslistforbind",

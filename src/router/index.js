@@ -341,5 +341,6 @@ export const routerMap = {
   rolelist: () => import('@/views/user/rolelist'),
   dealercustomermap: () => import('@/views/user/dealercustomermap'),
   presell: () => import('@/views/sell/presell'),
+  presellformonth: () => import('@/views/sell/presell'),
   preselllist: () => import('@/views/sell/preselllist')
 }
