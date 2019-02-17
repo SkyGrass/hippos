@@ -252,7 +252,7 @@
             <el-input-number
               size="mini"
               v-model="scope.row.FQty"
-              @change="handleChange"
+              @change="handleChange($event ,scope.$index)"
               :min="0.1"
               :max="100"
               :step="0.1"
@@ -735,8 +735,8 @@ export default {
         });
       }
     },
-    handleChange(val) {
-      const nv = this.currentRow;
+    handleChange(val, nv) {
+      this.currentRow = nv;
       if (this.list[nv].FInvCode == "") return;
       const FPlanPrice = this.list[nv].FPlanPrice;
       const FTaxRate = this.orderForm.FTaxRate;

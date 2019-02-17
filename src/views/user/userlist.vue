@@ -226,7 +226,7 @@ import {
   reSetUserPwd,
   delUser
 } from "@/api/user";
-import { fetchU8CusList } from "@/api/u8cus";
+import { fetchU8CusListForCanBind } from "@/api/u8cus";
 import { fetchRoleForSelect } from "@/api/role";
 import waves from "@/directive/waves"; // Waves directive
 import permission from "@/directive/permission/index.js"; // 权限判断指令
@@ -322,7 +322,7 @@ export default {
     },
     getU8CusList() {
       this.u8cuslistLoading = true;
-      fetchU8CusList(this.u8cuslistQuery).then(response => {
+      fetchU8CusListForCanBind(this.u8cuslistQuery).then(response => {
         const { data, state, message } = response.data;
         if (state === `success`) {
           this.u8list = data.items;

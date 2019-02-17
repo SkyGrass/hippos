@@ -32,7 +32,14 @@
             clearable
             class="filter-item"
             style="width: 200px"
-          ></el-select>
+          >
+            <el-option
+              v-for="item in u8list"
+              v-bind:key="item.ccuscode"
+              :label="item.ccusname"
+              :value="item.ccuscode"
+            ></el-option>
+          </el-select>
           <el-button
             v-waves
             class="filter-item"
@@ -66,7 +73,7 @@
           ></el-date-picker>
           <el-date-picker
             class="filter-item"
-            v-model="listQuery.requestdaterange"
+            v-model="listQuery.requestdate"
             type="daterange"
             align="right"
             unlink-panels
@@ -86,12 +93,13 @@
       :data="list"
       border
       highlight-current-row
+      :span-method="objectSpanMethod"
       style="width: 100%;"
     >
       <el-table-column
         label="操作"
         align="center"
-        width="100px"
+        :width="specialWidth"
         class-name="small-padding fixed-width"
       >
         <template slot-scope="scope">
@@ -122,6 +130,11 @@
       <el-table-column label="经销商" width="100px" align="center">
         <template slot-scope="scope">
           <span>{{ scope.row.FTraderName }}</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="客户" width="150px" align="center">
+        <template slot-scope="scope">
+          <span>{{ scope.row.FCusName }}</span>
         </template>
       </el-table-column>
       <el-table-column label="税率" width="60px" align="center">
@@ -272,6 +285,11 @@
 </template>
 
 <script>
+import {
+  fetchU8CusListHaveBind,
+  fetchU8CusListWithCode,
+  fetchU8CusList
+} from "@/api/u8cus";
 import { getPreSellList } from "@/api/presell";
 import waves from "@/directive/waves"; // Waves directive
 import permission from "@/directive/permission/index.js"; // 权限判断指令
@@ -291,6 +309,7 @@ export default {
   data() {
     return {
       tableKey: 0,
+      u8list: [],
       list: null,
       total: 0,
       listLoading: false,
@@ -390,8 +409,16 @@ export default {
       }
     };
   },
+  computed: {
+    specialWidth() {
+      const role = [...this.$store.getters.roles].shift();
+      const grouprole1 = ["seller", "admin", "sa"];
+      return grouprole1.findIndex(f => f === role) > -1 ? "200px" : "100px";
+    }
+  },
   created() {
     this.getList();
+    this.getU8CusList();
   },
   methods: {
     getList() {
@@ -414,24 +441,45 @@ export default {
       });
     },
     getU8CusList() {
-      this.u8cuslistLoading = true;
-      fetchU8CusList(this.u8cuslistQuery).then(response => {
-        this.u8list = response.data.items;
-        this.u8total = response.data.total;
-
-        // Just to simulate the time of the request
-        setTimeout(() => {
-          this.u8cuslistLoading = false;
-        }, 1.5 * 1000);
-      });
+      const role = [...this.$store.getters.roles].shift();
+      switch (role) {
+        case "customer":
+          fetchU8CusListWithCode({ cuscode: this.$store.getters.username })
+            .then(response => {
+              const { data, state, message } = response.data;
+              if (state === `success`) {
+                this.u8list = data.items;
+              }
+            })
+            .catch(() => {});
+          break;
+        case "seller":
+        case "admin":
+        case "sa":
+          fetchU8CusList()
+            .then(response => {
+              const { data, state, message } = response.data;
+              if (state === `success`) {
+                this.u8list = data.items;
+              }
+            })
+            .catch(() => {});
+          break;
+        case "trader":
+          fetchU8CusListHaveBind({ trader: this.$store.getters.username })
+            .then(response => {
+              const { data, state, message } = response.data;
+              if (state === `success`) {
+                this.u8list = data.items;
+              }
+            })
+            .catch(() => {});
+          break;
+      }
     },
     handleFilter() {
       this.listQuery.page = 1;
       this.getList();
-    },
-    handleU8Filter() {
-      this.u8cuslistQuery.page = 1;
-      this.getU8CusList();
     },
     handleExplore() {
       // this.dialogStatus = "create";
@@ -459,8 +507,22 @@ export default {
         }
       });
     },
-    handleEdit(row) {},
-    handleAudit(row) {}
+    handleAudit(row) {},
+    objectSpanMethod({ row, column, rowIndex, columnIndex }) {
+      if (columnIndex < 13) {
+        if (rowIndex % 2 === 0) {
+          return {
+            rowspan: 2,
+            colspan: 1
+          };
+        } else {
+          return {
+            rowspan: 0,
+            colspan: 0
+          };
+        }
+      }
+    }
   }
 };
 </script>

@@ -348,7 +348,11 @@ export default {
       fetchU8CusListForBind(this.u8cuslistQuery).then(response => {
         const { data, state, message } = response.data;
         if (state === `success`) {
-          this.data = data.items;
+          this.data = data.items.map(m => {
+            let t = m;
+            m.ccusname = `(${m.ccuscode})${m.ccusname}`;
+            return m;
+          });
         }
 
         // Just to simulate the time of the request
@@ -361,7 +365,11 @@ export default {
       fetchU8CusListHaveBind({ trader: username }).then(response => {
         const { data, state, message } = response.data;
         if (state === `success`) {
-          this.toData = data.items;
+          this.toData = data.items.map(m => {
+            let t = m;
+            m.ccusname = `(${m.ccuscode})${m.ccusname}`;
+            return m;
+          });
         }
       });
     },
