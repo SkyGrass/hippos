@@ -300,14 +300,14 @@ import {
   fetchU8CusListWithCode,
   fetchU8CusList
 } from "@/api/u8cus";
-import { getPreSellList, auditPresell, buildU8So } from "@/api/presell";
+import { getPreSellForMonthList, auditPresell, buildU8So } from "@/api/presell";
 import waves from "@/directive/waves"; // Waves directive
 import permission from "@/directive/permission/index.js"; // 权限判断指令
 import { parseTime } from "@/utils";
 import Pagination from "@/components/Pagination"; // Secondary package based on el-pagination
 
 export default {
-  name: "preselllist",
+  name: "presellformonthlist",
   components: { Pagination },
   directives: { waves, permission },
   filters: {
@@ -434,7 +434,7 @@ export default {
   methods: {
     getList() {
       this.listLoading = true;
-      getPreSellList(
+      getPreSellForMonthList(
         Object.assign({}, this.listQuery, {
           role: [...this.$store.getters.roles].shift(),
           biller: this.$store.getters.username
@@ -512,7 +512,7 @@ export default {
     },
     handleShow(row) {
       this.$router.push({
-        path: `/presell`,
+        path: `/presellformonth`,
         query: {
           id: row.FID
         }

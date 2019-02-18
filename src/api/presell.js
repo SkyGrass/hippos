@@ -23,9 +23,41 @@ export function getPreSellList(data) {
     })
 }
 
+export function getPreSellForMonthList(data) {
+    return request({
+        url: '/presell/getpresellformonthlist',
+        method: 'post',
+        data
+    })
+}
+
 export function getPreSellInfo(data) {
     return request({
         url: '/presell/getpresellinfo',
+        method: 'post',
+        data
+    })
+}
+
+export function getPreSellForMonthInfo(data) {
+    return request({
+        url: '/presell/getpresellformonthinfo',
+        method: 'post',
+        data
+    })
+}
+
+export function auditPresell(data) {
+    return request({
+        url: '/presell/auditpresell',
+        method: 'post',
+        data
+    })
+}
+
+export function buildU8So(data) {
+    return request({
+        url: '/presell/buildu8so',
         method: 'post',
         data
     })

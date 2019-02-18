@@ -167,7 +167,20 @@
       >保存订单</el-button>
     </el-button-group>
     <el-button-group style="margin-top:20px" v-permission="['seller']">
-      <el-button type="danger" icon="el-icon-circle-check-outline" @click="AuditForm">审批订单</el-button>
+      <el-button
+        type="danger"
+        icon="el-icon-circle-check-outline"
+        @click="AuditForm"
+        v-if="orderForm.FStatus==='0'"
+        :loading="btnIsLoading"
+      >审批订单</el-button>
+      <el-button
+        type="danger"
+        icon="el-icon-circle-check-outline"
+        @click="BuildSo"
+        v-if="orderForm.FStatus ==='1'"
+        :loading="btnIsLoading"
+      >生单</el-button>
     </el-button-group>
     <el-table
       v-loading="listLoading"
@@ -469,7 +482,12 @@
 import { fetchU8CusListHaveBind, fetchU8CusListWithCode } from "@/api/u8cus";
 import { fetchU8StList } from "@/api/u8st";
 import { fetchInvList, fetchCusInvList } from "@/api/inv";
-import { getPreSellBillNo, savePreSell, getPreSellInfo } from "@/api/presell";
+import {
+  getPreSellBillNo,
+  savePreSell,
+  getPreSellInfo,
+  buildU8So
+} from "@/api/presell";
 import waves from "@/directive/waves"; // Waves directive
 import Pagination from "@/components/Pagination"; // Secondary package based on el-pagination
 import permission from "@/directive/permission/index.js"; // 权限判断指令
@@ -564,7 +582,8 @@ export default {
           return time.getTime() < getFirstTime().getTime();
         }
       },
-      pickerOptionsStartForRequest: {}
+      pickerOptionsStartForRequest: {},
+      btnIsLoading: false
     };
   },
   watch: {
@@ -889,22 +908,72 @@ export default {
     },
     AuditForm() {
       if (this.orderForm.FStatus == `0`) {
-        this.$confirm(`此操作将提交审批此预订单, 是否继续?`, "提示", {
+        this.$confirm(`您的操作将改变此预订单的审批状态, 是否继续?`, "提示", {
           confirmButtonText: "确定",
           cancelButtonText: "取消",
           type: "warning"
         })
           .then(() => {
-            this.orderForm.FStatus = `2`;
-            this.orderForm.FVerifyDate = new Date();
-            this.orderForm.FVerifier = this.$store.getters.username;
-            this.orderForm.FU8BillNo = `0000000000`;
-            this.$notify({
-              title: "成功",
-              message: "审批完成!请到U8系统中查看!",
-              type: "success",
-              duration: 2000
-            });
+            this.btnIsLoading = true;
+            auditPresell({
+              verifier: this.$store.getters.username,
+              id: this.orderForm.FID
+            })
+              .then(response => {
+                const { data, state, message } = response.data;
+                if (state === `success`) {
+                  this.orderForm.FVerifyDate = data.date;
+                  this.orderForm.FVerifier = data.verifier;
+                  this.orderForm.FStatus = data.status;
+                }
+                this.btnIsLoading = false;
+                return this.$notify({
+                  title: state == `success` ? "成功" : "错误",
+                  message: message,
+                  type: state,
+                  duration: 2000
+                });
+              })
+              .catch(() => {});
+          })
+          .catch(() => {});
+      } else {
+        this.$notify({
+          title: "错误",
+          message: "已完成审批!",
+          type: "error",
+          duration: 2000
+        });
+      }
+    },
+    BuildSo() {
+      if (this.orderForm.FStatus == `1`) {
+        this.$confirm(`您的操作将生成U8销售单, 是否继续?`, "提示", {
+          confirmButtonText: "确定",
+          cancelButtonText: "取消",
+          type: "warning"
+        })
+          .then(() => {
+            this.btnIsLoading = true;
+            buildU8So({
+              id: this.orderForm.FID
+            })
+              .then(response => {
+                const { data, state, message } = response.data;
+                if (state === `success`) {
+                  this.orderForm.FVerifyDate = data.date;
+                  this.orderForm.FVerifier = data.verifier;
+                  this.orderForm.FStatus = data.status;
+                }
+                this.btnIsLoading = false;
+                return this.$notify({
+                  title: state == `success` ? "成功" : "错误",
+                  message: message,
+                  type: state,
+                  duration: 2000
+                });
+              })
+              .catch(() => {});
           })
           .catch(() => {});
       } else {
@@ -928,9 +997,11 @@ export default {
     } else {
       if (this.currentRole == `trader`) {
         this.orderForm.FDealerCode = this.$store.getters.username;
+        this.orderForm.FType = 1; //经销商是2
       }
       if (this.currentRole == `customer`) {
         this.orderForm.FCustCode = this.$store.getters.cuscode;
+        this.orderForm.FType = 2; //客户是2
       }
       this.orderForm.FBiller = this.$store.getters.username;
       getPreSellBillNo()
