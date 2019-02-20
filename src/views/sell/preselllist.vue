@@ -40,25 +40,6 @@
               :value="item.ccuscode"
             ></el-option>
           </el-select>
-          <el-button
-            v-waves
-            class="filter-item"
-            type="primary"
-            icon="el-icon-search"
-            @click="handleFilter"
-          >搜索</el-button>
-          <el-button
-            v-waves
-            class="filter-item"
-            style="margin-left: 10px;"
-            type="primary"
-            icon="el-icon-download"
-            @click="handleExplore"
-          >导出</el-button>
-        </el-col>
-      </el-row>
-      <el-row>
-        <el-col>
           <el-date-picker
             class="filter-item"
             v-model="listQuery.date"
@@ -83,6 +64,27 @@
             value-format="yyyy-MM-dd"
             :picker-options="pickerOptionsForRequestDate"
           ></el-date-picker>
+          <el-button
+            v-waves
+            class="filter-item"
+            type="primary"
+            icon="el-icon-search"
+            @click="handleFilter"
+          >搜索</el-button>
+        </el-col>
+      </el-row>
+      <el-row>
+        <el-col>
+          <FilenameOption class="filter-item" v-model="filename"/>
+          <BookTypeOption class="filter-item" v-model="bookType"/>
+          <el-button
+            v-waves
+            class="filter-item"
+            type="primary"
+            icon="el-icon-download"
+            @click="handleExplore"
+            :loading="downloadLoading"
+          >导出</el-button>
         </el-col>
       </el-row>
     </div>
@@ -305,10 +307,12 @@ import waves from "@/directive/waves"; // Waves directive
 import permission from "@/directive/permission/index.js"; // 权限判断指令
 import { parseTime } from "@/utils";
 import Pagination from "@/components/Pagination"; // Secondary package based on el-pagination
-
+import FilenameOption from "./components/FilenameOption";
+import BookTypeOption from "./components/BookTypeOption";
+import { config } from "./config";
 export default {
   name: "preselllist",
-  components: { Pagination },
+  components: { Pagination, FilenameOption, BookTypeOption },
   directives: { waves, permission },
   filters: {
     statusFilter(status) {
@@ -417,7 +421,11 @@ export default {
           }
         ]
       },
-      btnIsLoading: false
+      btnIsLoading: false,
+      downloadLoading: false,
+      filename: "",
+      autoWidth: true,
+      bookType: "xlsx"
     };
   },
   computed: {
@@ -493,12 +501,41 @@ export default {
       this.getList();
     },
     handleExplore() {
-      // this.dialogStatus = "create";
-      // this.dialogFormVisible = true;
-      // this.temp = {};
-      // this.$nextTick(() => {
-      //   this.$refs["dataForm"].clearValidate();
-      // });
+      if (this.list.length > 0) {
+        this.downloadLoading = true;
+        import("@/vendor/Export2Excel").then(excel => {
+          const tHeader = [...config];
+          const filterVal = [...config].map(m => {
+            return m.prop;
+          });
+          const list = this.list;
+          const data = this.formatJson(filterVal, list);
+          excel.export_json_to_excel({
+            header: tHeader.map(m => {
+              return m.title;
+            }),
+            data,
+            filename: this.filename,
+            autoWidth: true,
+            bookType: this.bookType
+          });
+          this.downloadLoading = false;
+        });
+      } else {
+        return this.$notify({
+          title: "错误",
+          message: `没有数据可以导出`,
+          type: `error`,
+          duration: 2000
+        });
+      }
+    },
+    formatJson(filterVal, jsonData) {
+      return jsonData.map(v =>
+        filterVal.map(j => {
+          return v[j];
+        })
+      );
     },
     filterCus(value) {
       return "";
