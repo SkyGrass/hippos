@@ -3,7 +3,7 @@
     <div class="filter-container">
       <el-input
         v-model="listQuery.searchword"
-        placeholder="昵称/用户名"
+        placeholder="昵称/用户名/客户编码/客户名称"
         style="width: 200px;"
         class="filter-item"
         @keyup.enter.native="handleFilter"
@@ -73,12 +73,17 @@
       </el-table-column>
       <el-table-column label="角色" width="110px" align="center">
         <template slot-scope="scope">
-          <span>{{ scope.row.role }}</span>
+          <span>{{ scope.row.rolename }}</span>
         </template>
       </el-table-column>
       <el-table-column label="U8客户编码" width="110px" align="center">
         <template slot-scope="scope">
           <span>{{ scope.row.cuscode }}</span>
+        </template>
+      </el-table-column>
+       <el-table-column label="U8客户名称" width="160px" align="center">
+        <template slot-scope="scope">
+          <span>{{ scope.row.cusname }}</span>
         </template>
       </el-table-column>
       <el-table-column label="是否停用" width="80px" align="center">
@@ -188,6 +193,7 @@
         border
         fit
         highlight-current-row
+        max-height="250"
         style="width: 100%"
       >
         <el-table-column prop="ccuscode" label="U8客户编码"/>
@@ -372,6 +378,7 @@ export default {
             const { data, state, message } = response.data;
             if (state === `success`) {
               this.list.unshift(data);
+              this.total += 1;
             }
             this.dialogFormVisible = false;
             this.$notify({

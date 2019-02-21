@@ -410,6 +410,7 @@
         highlight-current-row
         show-overflow-tooltip
         style="width: 100%;"
+        max-height="250"
       >
         <el-table-column align="center" label="操作" width="120">
           <template slot-scope="scope">

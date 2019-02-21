@@ -409,6 +409,7 @@
         fit
         highlight-current-row
         show-overflow-tooltip
+        max-height="250"
         style="width: 100%;"
       >
         <el-table-column align="center" label="操作" width="120">
