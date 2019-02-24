@@ -108,7 +108,7 @@
           <el-button
             type="danger"
             size="mini"
-            v-permission="['seller']"
+            v-permission="['seller','admin']"
             v-if="scope.row.FStatus === 0"
             :loading="btnIsLoading"
             @click="handleAudit(scope)"
@@ -116,12 +116,18 @@
           <el-button
             type="danger"
             size="mini"
-            v-permission="['seller']"
+            v-permission="['seller','admin']"
             v-if="scope.row.FStatus === 1"
             :loading="btnIsLoading"
             @click="handleBuild(scope)"
           >生单</el-button>
-          <el-button type="info" size="mini" @click="handleShow(scope.row)">查看</el-button>
+          <el-button size="mini" @click="handleShow(scope.row)">查看</el-button>
+          <el-button
+            type="danger"
+            size="mini"
+            @click="handleDel(scope.row)"
+            v-if="scope.row.FStatus===0 && judgeRole()"
+          >删除</el-button>
         </template>
       </el-table-column>
       <el-table-column label="销售类型" width="120px" align="center">
@@ -206,7 +212,7 @@
       </el-table-column>
       <el-table-column label="单位" width="80px" align="center">
         <template slot-scope="scope">
-          <span>{{ scope.row.FComInvUnitName }}</span>
+          <span>{{ scope.row.FComUnitName }}</span>
         </template>
       </el-table-column>
       <el-table-column label="数量" width="60px" align="center">
@@ -302,7 +308,12 @@ import {
   fetchU8CusListWithCode,
   fetchU8CusList
 } from "@/api/u8cus";
-import { getPreSellList, auditPresell, buildU8So } from "@/api/presell";
+import {
+  getPreSellList,
+  auditPresell,
+  buildU8So,
+  delPreSell
+} from "@/api/presell";
 import waves from "@/directive/waves"; // Waves directive
 import permission from "@/directive/permission/index.js"; // 权限判断指令
 import { parseTime } from "@/utils";
@@ -353,9 +364,9 @@ export default {
         ccuscode: "",
         date: [
           `${new Date().getFullYear()}-${new Date().getMonth() +
-            1}-${new Date().getDate()}`,
+            1}-${new Date().getDate() - 7}`,
           `${new Date().getFullYear()}-${new Date().getMonth() +
-            1}-${new Date().getDate() + 7}`
+            1}-${new Date().getDate()}`
         ],
         requestdate: []
       },
@@ -425,14 +436,15 @@ export default {
       downloadLoading: false,
       filename: "",
       autoWidth: true,
-      bookType: "xlsx"
+      bookType: "xlsx",
+      spanArr: []
     };
   },
   computed: {
     specialWidth() {
       const role = [...this.$store.getters.roles].shift();
       const grouprole1 = ["seller", "admin", "sa"];
-      return grouprole1.findIndex(f => f === role) > -1 ? "200px" : "100px";
+      return grouprole1.findIndex(f => f === role) > -1 ? "300px" : "200px";
     }
   },
   created() {
@@ -440,6 +452,12 @@ export default {
     this.getU8CusList();
   },
   methods: {
+    judgeRole() {
+      return (
+        [...this.$store.getters.roles].shift() != "seller" &&
+        [...this.$store.getters.roles].shift() != "admin"
+      );
+    },
     getList() {
       this.listLoading = true;
       getPreSellList(
@@ -453,6 +471,23 @@ export default {
           this.list = data.items;
           this.total = data.total;
         }
+
+        let contactDot = 0;
+        this.list.forEach((item, index) => {
+          item.index = index;
+          if (index === 0) {
+            this.spanArr.push(1);
+          } else {
+            if (item.FID === this.list[index - 1].FID) {
+              this.spanArr[contactDot] += 1;
+              this.spanArr.push(0);
+            } else {
+              this.spanArr.push(1);
+              contactDot = index;
+            }
+          }
+        });
+
         // Just to simulate the time of the request
         setTimeout(() => {
           this.listLoading = false;
@@ -498,6 +533,7 @@ export default {
     },
     handleFilter() {
       this.listQuery.page = 1;
+      this.spanArr = [];
       this.getList();
     },
     handleExplore() {
@@ -586,6 +622,34 @@ export default {
         })
         .catch(() => {});
     },
+    handleDel(scope) {
+      const row = scope.row;
+      const rowIndex = scope.$index;
+      this.$confirm(`您的操作将删除此销售单, 是否继续?`, "提示", {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        type: "warning"
+      })
+        .then(() => {
+          this.btnIsLoading = true;
+          delPreSell({ id: row.FID })
+            .then(response => {
+              const { data, state, message } = response.data;
+              if (state === `success`) {
+                this.getList();
+              }
+              this.btnIsLoading = false;
+              return this.$notify({
+                title: state == `success` ? "成功" : "错误",
+                message: message,
+                type: state,
+                duration: 2000
+              });
+            })
+            .catch(() => {});
+        })
+        .catch(() => {});
+    },
     handleBuild(scope) {
       const row = scope.row;
       const rowIndex = scope.$index;
@@ -600,11 +664,7 @@ export default {
             .then(response => {
               const { data, state, message } = response.data;
               if (state === `success`) {
-                console.log(data);
-                // this.list[rowIndex].FVerifierDate = data.date;
-                // this.list[rowIndex].FVerifierName = data.verifier;
-                // this.list[rowIndex].FStatusName = data.statusname;
-                // this.list[rowIndex].FStatus = data.status;
+                this.getList();
               }
               this.btnIsLoading = false;
               return this.$notify({
@@ -620,17 +680,12 @@ export default {
     },
     objectSpanMethod({ row, column, rowIndex, columnIndex }) {
       if (columnIndex < 13) {
-        if (rowIndex % 2 === 0) {
-          return {
-            rowspan: 2,
-            colspan: 1
-          };
-        } else {
-          return {
-            rowspan: 0,
-            colspan: 0
-          };
-        }
+        const _row = this.spanArr[rowIndex];
+        const _col = _row > 0 ? 1 : 0;
+        return {
+          rowspan: _row,
+          colspan: _col
+        };
       }
     }
   }

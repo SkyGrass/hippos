@@ -104,8 +104,8 @@ export default {
     };
     return {
       loginForm: {
-        username: "trader",
-        password: "123456"
+        username: "",
+        password: ""
       },
       loginRules: {
         username: [
@@ -132,9 +132,7 @@ export default {
   created() {
     // window.addEventListener('hashchange', this.afterQRScan)
   },
-  destroyed() {
-    // window.removeEventListener('hashchange', this.afterQRScan)
-  },
+  destroyed() {},
   methods: {
     showPwd() {
       if (this.passwordType === "password") {
@@ -151,6 +149,7 @@ export default {
             .dispatch("LoginByUsername", this.loginForm)
             .then(() => {
               this.loading = false;
+              window.localStorage.setItem("username", this.loginForm.username);
               // this.$router.push({ path: this.redirect || "/" });
               this.$router.push({ path: "/" });
             })
@@ -184,6 +183,9 @@ export default {
       //   })
       // }
     }
+  },
+  mounted() {
+    this.loginForm.username = window.localStorage.getItem("username") || "";
   }
 };
 </script>
@@ -208,6 +210,9 @@ $cursor: #fff;
 
 /* reset element-ui css */
 .login-container {
+  background-image: url("../../../static/images/bg1.jpg");
+  background-size: cover;
+  background-repeat: no-repeat;
   .el-input {
     display: inline-block;
     height: 47px;
@@ -254,7 +259,7 @@ $light_gray: #eee;
     position: relative;
     width: 520px;
     max-width: 100%;
-    padding: 160px 35px 0;
+    padding: 220px 35px 0;
     margin: 0 auto;
     overflow: hidden;
   }
@@ -283,7 +288,7 @@ $light_gray: #eee;
     position: relative;
 
     .title {
-      font-size: 26px;
+      font-size: 50px;
       color: $light_gray;
       margin: 0px auto 40px auto;
       text-align: center;

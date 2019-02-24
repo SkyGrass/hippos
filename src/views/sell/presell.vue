@@ -12,6 +12,7 @@
         <el-col :span="6">
           <el-form-item label="单号" prop="FBillNo" required>
             <el-input class="fixitem" v-model="orderForm.FBillNo" disabled></el-input>
+            <span v-if="haveDel" style="color:red;font-size:18px">此订单已删除!</span>
           </el-form-item>
         </el-col>
         <el-col :span="6">
@@ -28,20 +29,21 @@
           </el-form-item>
         </el-col>
         <el-col :span="6" v-if="judgeRole()">
-          <el-form-item label="经销商" prop="FDealerCode">
-            <el-input class="fixitem" v-model="orderForm.FDealerCode" disabled></el-input>
+          <el-form-item label="经销商" prop="FDealerName">
+            <el-input class="fixitem" v-model="orderForm.FDealerName" disabled></el-input>
           </el-form-item>
         </el-col>
         <el-col :span="6">
-          <el-form-item label="客户" prop="FCustCode" required>
+          <el-form-item label="客户" prop="FCusName" required>
             <el-select
               class="fixitem"
-              v-model="orderForm.FCustCode"
+              v-model="orderForm.FCusName"
               placeholder="请选择客户"
               clearable
               filterable
               :filter-method="filterU8"
               :disabled="canEdit"
+              @change="changeCus"
             >
               <el-option
                 v-for="item in u8List"
@@ -85,8 +87,8 @@
           </el-form-item>
         </el-col>
         <el-col :span="6">
-          <el-form-item label="制单人" prop="FBiller">
-            <el-input class="fixitem" v-model="orderForm.FBiller" disabled></el-input>
+          <el-form-item label="制单人" prop="FBillerName">
+            <el-input class="fixitem" v-model="orderForm.FBillerName" disabled></el-input>
           </el-form-item>
         </el-col>
         <el-col :span="6">
@@ -132,6 +134,7 @@
             placeholder="请输入预订单的备注"
             style="width:81vw"
             type="textarea"
+            :disabled="canEdit"
             v-model="orderForm.Fremark"
           ></el-input>
           <!-- </el-form-item> -->
@@ -139,7 +142,7 @@
       </el-row>
     </el-form>
 
-    <el-button-group style="margin-top:20px" v-permission="['customer','trader']">
+    <el-button-group style="margin-top:20px" v-permission="['customer','trader','admin']">
       <el-button
         type="primary"
         icon="el-icon-plus"
@@ -153,12 +156,17 @@
         v-if="this.formStatus !== `look`"
       >清空行</el-button>
       <el-button
-        type="danger"
         icon="el-icon-edit"
         @click="editForm"
-        v-if="this.formStatus === `look`"
+        v-if="this.formStatus === `look` && !haveDel"
         :disabled="haveAudit()"
       >编辑订单</el-button>
+      <el-button
+        type="danger"
+        icon="el-icon-edit"
+        @click="delForm"
+        v-if="this.formStatus === `look`&& !haveAudit() && !haveDel"
+      >删除订单</el-button>
       <el-button
         type="warning"
         icon="el-icon-check"
@@ -166,12 +174,12 @@
         v-if="this.formStatus !== `look`"
       >保存订单</el-button>
     </el-button-group>
-    <el-button-group style="margin-top:20px" v-permission="['seller']">
+    <el-button-group style="margin-top:20px" v-permission="['seller','admin']">
       <el-button
         type="danger"
         icon="el-icon-circle-check-outline"
         @click="AuditForm"
-        v-if="orderForm.FStatus==='0'"
+        v-if="orderForm.FStatus==='0' && this.formStatus =='look'"
         :loading="btnIsLoading"
       >审批订单</el-button>
       <el-button
@@ -336,7 +344,7 @@
               :picker-options="pickerOptionsStartForRequest"
             ></el-date-picker>
           </template>
-          <span v-else>{{ scope.row.FRequestDate }}</span>
+          <span v-else>{{ scope.row.FRequestDate.substring(0,10).replace(/\//g,'-') }}</span>
         </template>
       </el-table-column>
 
@@ -480,14 +488,20 @@
 </template>
 
 <script>
-import { fetchU8CusListHaveBind, fetchU8CusListWithCode } from "@/api/u8cus";
+import {
+  fetchU8CusListHaveBind,
+  fetchU8CusListWithCode,
+  fetchU8CusList
+} from "@/api/u8cus";
 import { fetchU8StList } from "@/api/u8st";
 import { fetchInvList, fetchCusInvList } from "@/api/inv";
 import {
   getPreSellBillNo,
   savePreSell,
   getPreSellInfo,
-  buildU8So
+  buildU8So,
+  delPreSell,
+  auditPresell
 } from "@/api/presell";
 import waves from "@/directive/waves"; // Waves directive
 import Pagination from "@/components/Pagination"; // Secondary package based on el-pagination
@@ -511,9 +525,12 @@ export default {
         FDate: undefined,
         FSTCode: "",
         FCustCode: "",
+        FCusName: "",
         FDealerCode: "",
+        FDealerName: "",
         FTaxRate: 16,
         FBiller: "",
+        FBillerName: "",
         FVerifier: "",
         FVerifyDate: "",
         Fremark: "",
@@ -551,7 +568,7 @@ export default {
         FBillNo: [
           { required: true, message: "单号不可无空!", trigger: "change" }
         ],
-        FCustCode: [
+        FCusName: [
           { required: true, message: "客户不可无空!", trigger: "change" }
         ],
         FSTCode: [
@@ -584,7 +601,8 @@ export default {
         }
       },
       pickerOptionsStartForRequest: {},
-      btnIsLoading: false
+      btnIsLoading: false,
+      haveDel: false
     };
   },
   watch: {
@@ -621,6 +639,9 @@ export default {
     }
   },
   methods: {
+    changeCus(value) {
+      this.orderForm.FCustCode = value;
+    },
     judgeRole() {
       return this.currentRole == "trader";
     },
@@ -654,35 +675,37 @@ export default {
     },
     onSearch(row) {
       if (row.FInvCode === ``) return;
-      else {
-        fetchInvList(
-          Object.assign({}, this.listQuery, { searchword: row.FInvCode })
-        ).then(response => {
-          const { data, state, message } = response.data;
-          if (state === `success`) {
-            if (data.items.length > 0) {
-              const _data = [Object.assign({}, data.items.shift())];
-              this.confirm(_data);
-            } else {
-              const _data = [Object.assign({}, this.orderForm)];
-              this.confirm(_data);
-              this.$notify({
-                title: "提示",
-                message: "没有查询到数据!",
-                type: "warning",
-                duration: 2000
-              });
-            }
+      if (row.FInvCode === undefined) return;
+
+      fetchInvList(
+        Object.assign({}, this.listQuery, { searchword: row.FInvCode })
+      ).then(response => {
+        this.dialogInvVisible = true;
+        const { data, state, message } = response.data;
+        if (state === `success`) {
+          if (data.items.length > 0) {
+            this.invList = data.items;
+            this.invTotal = data.total;
           } else {
+            const _data = [Object.assign({}, this.orderForm)];
+            this.confirm(_data);
             this.$notify({
-              title: "错误",
-              message: message,
+              title: "提示",
+              message: "没有查询到数据!",
               type: "warning",
               duration: 2000
             });
           }
-        });
-      }
+        } else {
+          this.$notify({
+            title: "错误",
+            message: message,
+            type: "warning",
+            duration: 2000
+          });
+        }
+        this.invListLoading = false;
+      });
     },
     getInvList(row) {
       this.invListLoading = true;
@@ -821,6 +844,27 @@ export default {
         })
         .catch(() => {});
     },
+    delForm() {
+      this.$confirm(`此操作将删除此预订单, 是否继续?`, "提示", {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        type: "warning"
+      })
+        .then(() => {
+          delPreSell({ id: this.orderForm.FID }).then(response => {
+            const { data, message, state } = response.data;
+            this.haveDel = state === `success`;
+
+            this.$notify({
+              title: state === `success` ? "成功" : "错误",
+              message: message,
+              type: state === `success` ? "success" : "warning",
+              duration: 2000
+            });
+          });
+        })
+        .catch(() => {});
+    },
     cancelEditForm() {
       this.formStatus = `look`;
     },
@@ -925,7 +969,7 @@ export default {
                 if (state === `success`) {
                   this.orderForm.FVerifyDate = data.date;
                   this.orderForm.FVerifier = data.verifier;
-                  this.orderForm.FStatus = data.status;
+                  this.orderForm.FStatus = data.status+'';
                 }
                 this.btnIsLoading = false;
                 return this.$notify({
@@ -935,7 +979,7 @@ export default {
                   duration: 2000
                 });
               })
-              .catch(() => {});
+              .catch(() => {console.log(`error`)});
           })
           .catch(() => {});
       } else {
@@ -962,9 +1006,7 @@ export default {
               .then(response => {
                 const { data, state, message } = response.data;
                 if (state === `success`) {
-                  this.orderForm.FVerifyDate = data.date;
-                  this.orderForm.FVerifier = data.verifier;
-                  this.orderForm.FStatus = data.status;
+                  this.getPreSellInfo(this.$route.query.id);
                 }
                 this.btnIsLoading = false;
                 return this.$notify({
@@ -998,14 +1040,20 @@ export default {
     } else {
       if (this.currentRole == `trader`) {
         this.orderForm.FDealerCode = this.$store.getters.username;
+        this.orderForm.FDealerName = this.$store.getters.name;
         this.orderForm.FType = 1; //经销商是2
       }
       if (this.currentRole == `customer`) {
         this.orderForm.FCustCode = this.$store.getters.cuscode;
+        this.orderForm.FCusName = this.$store.getters.name;
+        this.orderForm.FType = 2; //客户是2
+      }
+      if(this.currentRole == `admin`){
         this.orderForm.FType = 2; //客户是2
       }
       this.orderForm.FBiller = this.$store.getters.username;
-      getPreSellBillNo()
+      this.orderForm.FBillerName = this.$store.getters.name;
+      getPreSellBillNo({ type: "presell" })
         .then(response => {
           const { data, state, message } = response.data;
           if (state === `success`) {
@@ -1041,6 +1089,20 @@ export default {
     }
     if (this.currentRole == `customer`) {
       fetchU8CusListWithCode({ cuscode: this.orderForm.FCustCode })
+        .then(response => {
+          const { data, message, state } = response.data;
+          if (state === `success`) {
+            this.u8List = data.items;
+            this.u8ListCopy = data.items;
+
+            // if (this.formStatus === `add`)
+            //   this.orderForm.FCustCode = [...data.items].shift().ccuscode;
+          }
+        })
+        .catch(() => {});
+    }
+    if (this.currentRole == `admin`) {
+      fetchU8CusList()
         .then(response => {
           const { data, message, state } = response.data;
           if (state === `success`) {

@@ -74,7 +74,7 @@ export default {
     modifyPwd: `修改密码`
   },
   login: {
-    title: '河马井客户下单系统登录',
+    title: '客户下单系统',
     logIn: '登录',
     username: '账号',
     password: '密码',
