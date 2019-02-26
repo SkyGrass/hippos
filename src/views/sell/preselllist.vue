@@ -459,6 +459,7 @@ export default {
       );
     },
     getList() {
+      this.spanArr = [];
       this.listLoading = true;
       getPreSellList(
         Object.assign({}, this.listQuery, {
@@ -533,7 +534,6 @@ export default {
     },
     handleFilter() {
       this.listQuery.page = 1;
-      this.spanArr = [];
       this.getList();
     },
     handleExplore() {
