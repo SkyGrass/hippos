@@ -335,6 +335,7 @@ export default {
     return {
       tableKey: 0,
       u8list: [],
+      u8listCopy:[],
       list: null,
       total: 0,
       listLoading: false,
@@ -504,6 +505,7 @@ export default {
               const { data, state, message } = response.data;
               if (state === `success`) {
                 this.u8list = data.items;
+                this.u8listCopy = data.items;
               }
             })
             .catch(() => {});
@@ -516,6 +518,7 @@ export default {
               const { data, state, message } = response.data;
               if (state === `success`) {
                 this.u8list = data.items;
+                this.u8listCopy = data.items;
               }
             })
             .catch(() => {});
@@ -526,6 +529,7 @@ export default {
               const { data, state, message } = response.data;
               if (state === `success`) {
                 this.u8list = data.items;
+                this.u8listCopy = data.items;
               }
             })
             .catch(() => {});
@@ -574,14 +578,13 @@ export default {
       );
     },
     filterCus(value) {
-      return "";
-      // if (value) {
-      //   this.u8List = [...this.u8ListCopy].filter(
-      //     f => f.ccuscode.indexOf(value) > -1 || f.ccusname.indexOf(value) > -1
-      //   );
-      // } else {
-      //   this.u8List = [...this.u8ListCopy];
-      // }
+      if (value) {
+        this.u8list = [...this.u8listCopy].filter(
+          f => f.ccuscode.indexOf(value) > -1 || f.ccusname.indexOf(value) > -1
+        );
+      } else {
+        this.u8list = [...this.u8listCopy];
+      }
     },
     handleShow(row) {
       this.$router.push({
