@@ -335,7 +335,7 @@ export default {
     return {
       tableKey: 0,
       u8list: [],
-      u8listCopy:[],
+      u8listCopy: [],
       list: null,
       total: 0,
       listLoading: false,
@@ -363,12 +363,7 @@ export default {
         status: "",
         searchword: "",
         ccuscode: "",
-        date: [
-          `${new Date().getFullYear()}-${new Date().getMonth() +
-            1}-${new Date().getDate() - 7}`,
-          `${new Date().getFullYear()}-${new Date().getMonth() +
-            1}-${new Date().getDate()}`
-        ],
+        date: [],
         requestdate: []
       },
       pickerOptionsForDate: {
@@ -446,6 +441,12 @@ export default {
       const role = [...this.$store.getters.roles].shift();
       const grouprole1 = ["seller", "admin", "sa"];
       return grouprole1.findIndex(f => f === role) > -1 ? "300px" : "200px";
+    },
+    lastSevenDay: function() {
+      const end = new Date();
+      const start = new Date();
+      start.setTime(start.getTime() - 3600 * 1000 * 24 * 7);
+      return [start, end];
     }
   },
   created() {

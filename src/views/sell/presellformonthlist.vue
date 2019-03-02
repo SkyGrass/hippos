@@ -363,12 +363,7 @@ export default {
         status: "",
         searchword: "",
         ccuscode: "",
-        date: [
-          `${new Date().getFullYear()}-${new Date().getMonth() +
-            1}-${new Date().getDate() - 7}`,
-          `${new Date().getFullYear()}-${new Date().getMonth() +
-            1}-${new Date().getDate()}`
-        ],
+        date: [],
         requestdate: []
       },
       pickerOptionsForDate: {
