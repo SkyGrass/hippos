@@ -55,9 +55,18 @@ export function fetchTraderList(data) {
     data
   })
 }
+
 export function fetchCustomerList(data) {
   return request({
     url: `/user/getallcustomerlist`,
+    method: `post`,
+    data
+  })
+}
+
+export function modifyPassword(data) {
+  return request({
+    url: `/user/modifypassword`,
     method: `post`,
     data
   })

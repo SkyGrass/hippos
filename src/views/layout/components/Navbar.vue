@@ -69,7 +69,7 @@ import Screenfull from "@/components/Screenfull";
 import SizeSelect from "@/components/SizeSelect";
 import LangSelect from "@/components/LangSelect";
 import ThemePicker from "@/components/ThemePicker";
-
+import { modifyPassword } from "@/api/user";
 export default {
   components: {
     Breadcrumb,
@@ -102,9 +102,17 @@ export default {
         inputErrorMessage: "新密码输入不正确,长度不能少于6位"
       })
         .then(({ value }) => {
-          this.$message({
-            type: "success",
-            message: "你的邮箱是: " + value
+          modifyPassword({
+            userId: this.$store.getters.userId,
+            newpassword: value
+          }).then(response => {
+            const { state, data, message } = response.data;
+            return this.$notify({
+              title: state == `success` ? "成功" : "错误",
+              message: message,
+              type: state,
+              duration: 2000
+            });
           });
         })
         .catch(() => {});

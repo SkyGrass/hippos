@@ -11,11 +11,12 @@ const user = {
     name: "",
     avatar: "",
     introduction: "",
-    cuscode:"",
+    cuscode: "",
     roles: [],
     setting: {
       articlePlatform: []
-    }
+    },
+    userId: ""
   },
 
   mutations: {
@@ -48,6 +49,9 @@ const user = {
     },
     SET_CUSCODE: (state, cuscode) => {
       state.cuscode = cuscode;
+    },
+    SET_USERID: (state, userId) => {
+      state.userId = userId;
     }
   },
 
@@ -90,6 +94,7 @@ const user = {
               } else {
                 reject("getInfo: roles must be a non-null array!");
               }
+              commit("SET_USERID", data.userId);
               commit("SET_NAME", data.name);
               commit("SET_USERNAME", data.username);
               commit("SET_AVATAR", data.avatar);
