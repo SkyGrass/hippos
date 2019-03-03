@@ -55,6 +55,14 @@ export function auditPresell(data) {
   });
 }
 
+export function unAuditPresell(data) {
+  return request({
+    url: "/presell/unauditpresell",
+    method: "post",
+    data
+  });
+}
+
 export function buildU8So(data) {
   return request({
     url: "/presell/buildu8so",

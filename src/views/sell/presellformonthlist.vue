@@ -114,6 +114,14 @@
             @click="handleAudit(scope)"
           >审批</el-button>
           <el-button
+            type="info"
+            size="mini"
+            v-permission="['seller','admin']"
+            v-if="scope.row.FStatus === 1"
+            :loading="btnIsLoading"
+            @click="handleUnAudit(scope)"
+          >弃审</el-button>
+          <el-button
             type="danger"
             size="mini"
             v-permission="['seller','admin']"
@@ -311,6 +319,7 @@ import {
 import {
   getPreSellForMonthList,
   auditPresell,
+  unAuditPresell,
   buildU8So,
   delPreSell
 } from "@/api/presell";
@@ -335,7 +344,7 @@ export default {
     return {
       tableKey: 0,
       u8list: [],
-      u8listCopy:[],
+      u8listCopy: [],
       list: null,
       total: 0,
       listLoading: false,
@@ -588,6 +597,40 @@ export default {
           id: row.FID
         }
       });
+    },
+    handleUnAudit(scope) {
+      const row = scope.row;
+      const rowIndex = scope.$index;
+      this.$confirm(`您的操作将改变此预订单的审批状态, 是否继续?`, "提示", {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        type: "warning"
+      })
+        .then(() => {
+          this.btnIsLoading = true;
+          unAuditPresell({
+            verifier: this.$store.getters.username,
+            id: row.FID
+          })
+            .then(response => {
+              const { data, state, message } = response.data;
+              if (state === `success`) {
+                this.list[rowIndex].FVerifierDate = data.date;
+                this.list[rowIndex].FVerifierName = data.verifier;
+                this.list[rowIndex].FStatusName = data.statusname;
+                this.list[rowIndex].FStatus = data.status;
+              }
+              this.btnIsLoading = false;
+              return this.$notify({
+                title: state == `success` ? "成功" : "错误",
+                message: message,
+                type: state,
+                duration: 2000
+              });
+            })
+            .catch(() => {});
+        })
+        .catch(() => {});
     },
     handleAudit(scope) {
       const row = scope.row;

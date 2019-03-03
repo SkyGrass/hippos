@@ -181,7 +181,14 @@
         @click="AuditForm"
         v-if="orderForm.FStatus==='0' && this.formStatus =='look'"
         :loading="btnIsLoading"
-      >审批订单</el-button>
+      >审批</el-button>
+      <el-button
+        type="info"
+        icon="el-icon-circle-close-outline"
+        @click="UnAuditForm"
+        v-if="orderForm.FStatus ==='1'"
+        :loading="btnIsLoading"
+      >弃审</el-button>
       <el-button
         type="danger"
         icon="el-icon-circle-check-outline"
@@ -501,7 +508,8 @@ import {
   getPreSellInfo,
   buildU8So,
   delPreSell,
-  auditPresell
+  auditPresell,
+  unAuditPresell
 } from "@/api/presell";
 import waves from "@/directive/waves"; // Waves directive
 import Pagination from "@/components/Pagination"; // Secondary package based on el-pagination
@@ -951,6 +959,48 @@ export default {
         })
         .catch(() => {});
     },
+    UnAuditForm() {
+      if (this.orderForm.FStatus == `1`) {
+        this.$confirm(`您的操作将改变此预订单的审批状态, 是否继续?`, "提示", {
+          confirmButtonText: "确定",
+          cancelButtonText: "取消",
+          type: "warning"
+        })
+          .then(() => {
+            this.btnIsLoading = true;
+            unAuditPresell({
+              verifier: this.$store.getters.username,
+              id: this.orderForm.FID
+            })
+              .then(response => {
+                const { data, state, message } = response.data;
+                if (state === `success`) {
+                  this.orderForm.FVerifyDate = data.date;
+                  this.orderForm.FVerifier = data.verifier;
+                  this.orderForm.FStatus = data.status + "";
+                }
+                this.btnIsLoading = false;
+                return this.$notify({
+                  title: state == `success` ? "成功" : "错误",
+                  message: message,
+                  type: state,
+                  duration: 2000
+                });
+              })
+              .catch(() => {
+                console.log(`error`);
+              });
+          })
+          .catch(() => {});
+      } else {
+        this.$notify({
+          title: "错误",
+          message: "已完成弃审!",
+          type: "error",
+          duration: 2000
+        });
+      }
+    },
     AuditForm() {
       if (this.orderForm.FStatus == `0`) {
         this.$confirm(`您的操作将改变此预订单的审批状态, 是否继续?`, "提示", {
@@ -969,7 +1019,7 @@ export default {
                 if (state === `success`) {
                   this.orderForm.FVerifyDate = data.date;
                   this.orderForm.FVerifier = data.verifier;
-                  this.orderForm.FStatus = data.status+'';
+                  this.orderForm.FStatus = data.status + "";
                 }
                 this.btnIsLoading = false;
                 return this.$notify({
@@ -979,7 +1029,9 @@ export default {
                   duration: 2000
                 });
               })
-              .catch(() => {console.log(`error`)});
+              .catch(() => {
+                console.log(`error`);
+              });
           })
           .catch(() => {});
       } else {
@@ -1048,7 +1100,7 @@ export default {
         this.orderForm.FCusName = this.$store.getters.name;
         this.orderForm.FType = 2; //客户是2
       }
-      if(this.currentRole == `admin`){
+      if (this.currentRole == `admin`) {
         this.orderForm.FType = 2; //客户是2
       }
       this.orderForm.FBiller = this.$store.getters.username;
