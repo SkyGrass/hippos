@@ -81,7 +81,7 @@
           <span>{{ scope.row.cuscode }}</span>
         </template>
       </el-table-column>
-       <el-table-column label="U8客户名称" width="160px" align="center">
+      <el-table-column label="U8客户名称" width="160px" align="center">
         <template slot-scope="scope">
           <span>{{ scope.row.cusname }}</span>
         </template>
@@ -94,12 +94,12 @@
       <el-table-column
         label="操作"
         align="center"
-        width="300px"
+        width="400px"
         class-name="small-padding fixed-width"
       >
         <template slot-scope="scope">
           <el-button
-            type="danger"
+            type="info"
             size="mini"
             v-permission="['admin']"
             @click="handleResetPwd(scope.row)"
@@ -110,6 +110,7 @@
             size="mini"
             @click="handleDelete(scope.row)"
           >{{ scope.row.isclosed?'启用':'停用' }}</el-button>
+          <el-button type="danger" size="mini" @click="handleRemove(scope.row)">删除</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -230,7 +231,8 @@ import {
   createUser,
   updateUser,
   reSetUserPwd,
-  delUser
+  delUser,
+  removeUser
 } from "@/api/user";
 import { fetchU8CusListForCanBind } from "@/api/u8cus";
 import { fetchRoleForSelect } from "@/api/role";
@@ -398,6 +400,36 @@ export default {
       this.$nextTick(() => {
         this.$refs["dataForm"].clearValidate();
       });
+    },
+    handleRemove(row) {
+      this.$confirm(`此操作将删除此用户, 是否继续?`, "提示", {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        type: "warning"
+      })
+        .then(() => {
+          const { userId } = row;
+          removeUser({ userId }).then(response => {
+            const { state, message } = response.data;
+            if (state === `success`) {
+              for (const v of this.list) {
+                if (v.userId === userId) {
+                  const index = this.list.indexOf(v);
+                  this.list.splice(index, 1);
+                  this.total = this.total - 1;
+                  break;
+                }
+              }
+            }
+            this.$notify({
+              title: state === `success` ? "成功" : "失败",
+              message: message,
+              type: state,
+              duration: 2000
+            });
+          });
+        })
+        .catch(() => {});
     },
     updateData() {
       this.$refs["dataForm"].validate(valid => {

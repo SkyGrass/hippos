@@ -36,7 +36,7 @@
         class-name="small-padding fixed-width"
       >
         <template slot-scope="scope">
-          <el-button size="mini" plain @click="handleCreate()">新增</el-button>
+          <!-- <el-button size="mini" plain @click="handleCreate()">新增</el-button> -->
           <el-button type="warning" size="mini" @click="handleUpdate(scope.row)">编辑</el-button>
           <el-button
             :type="scope.row.isclosed?'success':'danger'"

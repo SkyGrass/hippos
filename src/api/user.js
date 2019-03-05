@@ -71,3 +71,12 @@ export function modifyPassword(data) {
     data
   })
 }
+
+export function removeUser(data) {
+  return request({
+    url: `/user/removeuser`,
+    method: `post`,
+    data
+  })
+}
+

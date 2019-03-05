@@ -282,7 +282,7 @@
               v-model="scope.row.FQty"
               @change="handleChange($event ,scope.$index)"
               :min="0.1"
-              :max="100"
+              :max="10000"
               :step="0.1"
             ></el-input-number>
           </template>
@@ -351,7 +351,7 @@
               :picker-options="pickerOptionsStartForRequest"
             ></el-date-picker>
           </template>
-          <span v-else>{{ scope.row.FRequestDate.substring(0,10).replace(/\//g,'-') }}</span>
+          <span v-else>{{ scope.row.FRequestDate.split(' ')[0].replace(/\//g,'-') }}</span>
         </template>
       </el-table-column>
 
@@ -633,14 +633,16 @@ export default {
     },
     "orderForm.FDate": {
       handler: function(nv) {
-        this.list.forEach(f => {
-          if (new Date(nv).getTime() >= new Date(f.FRequestDate).getTime()) {
-            f.FRequestDate = null;
-          }
-        });
+        if (this.formStatus == "add" || this.formStatus == "edit") {
+          this.list.forEach(f => {
+            if (new Date(nv).getTime() >= new Date(f.FRequestDate).getTime()) {
+              f.FRequestDate = null;
+            }
+          });
+        }
         this.pickerOptionsStartForRequest = {
           disabledDate(time) {
-            return time.getTime() <= new Date(nv).getTime();
+            return time.getTime() < new Date(nv).getTime();
           }
         };
       }
