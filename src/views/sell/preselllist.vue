@@ -89,217 +89,219 @@
       </el-row>
     </div>
 
-    <el-table
-      v-loading="listLoading"
-      :key="tableKey"
-      :data="list"
-      border
-      highlight-current-row
-      :span-method="objectSpanMethod"
-      style="width: 100%;"
-    >
-      <el-table-column
-        label="操作"
-        align="center"
-        :width="specialWidth"
-        class-name="small-padding fixed-width"
+    <div class="claim_company">
+      <el-table
+        v-loading="listLoading"
+        :key="tableKey"
+        :data="list"
+        border
+        highlight-current-row
+        :span-method="objectSpanMethod"
+        style="width: 100%;"
+        :height="maxheight"
       >
-        <template slot-scope="scope">
-          <el-button
-            type="danger"
-            size="mini"
-            v-permission="['seller','admin']"
-            v-if="scope.row.FStatus === 0"
-            :loading="btnIsLoading"
-            @click="handleAudit(scope)"
-          >审批</el-button>
-          <el-button
-            type="info"
-            size="mini"
-            v-permission="['seller','admin']"
-            v-if="scope.row.FStatus === 1"
-            :loading="btnIsLoading"
-            @click="handleUnAudit(scope)"
-          >弃审</el-button>
-          <el-button
-            type="danger"
-            size="mini"
-            v-permission="['seller','admin']"
-            v-if="scope.row.FStatus === 1"
-            :loading="btnIsLoading"
-            @click="handleBuild(scope)"
-          >生单</el-button>
-          <el-button size="mini" @click="handleShow(scope.row)">查看</el-button>
-          <el-button
-            type="danger"
-            size="mini"
-            @click="handleDel(scope.row)"
-            v-if="scope.row.FStatus===0 && judgeRole()"
-          >删除</el-button>
-        </template>
-      </el-table-column>
-      <el-table-column label="销售类型" width="120px" align="center">
-        <template slot-scope="scope">
-          <span>{{ scope.row.FSTName }}</span>
-        </template>
-      </el-table-column>
-      <el-table-column label="预订单号" width="180px" align="center">
-        <template slot-scope="scope">
-          <span>{{ scope.row.FBillNo }}</span>
-        </template>
-      </el-table-column>
-      <el-table-column label="日期" width="100px" align="center">
-        <template slot-scope="scope">
-          <span>{{ scope.row.FDate }}</span>
-        </template>
-      </el-table-column>
-      <el-table-column label="经销商" width="100px" align="center">
-        <template slot-scope="scope">
-          <span>{{ scope.row.FTraderName }}</span>
-        </template>
-      </el-table-column>
-      <el-table-column label="客户" width="150px" align="center">
-        <template slot-scope="scope">
-          <span>{{ scope.row.FCusName }}</span>
-        </template>
-      </el-table-column>
-      <el-table-column label="税率" width="60px" align="center">
-        <template slot-scope="scope">
-          <span>{{ scope.row.FTaxRate }}</span>
-        </template>
-      </el-table-column>
-      <el-table-column label="制单人" width="100px" align="center">
-        <template slot-scope="scope">
-          <span>{{ scope.row.FBillerName }}</span>
-        </template>
-      </el-table-column>
-      <el-table-column label="状态" width="80px" align="center">
-        <template slot-scope="scope">
-          <el-tag :type="scope.row.FStatus | statusFilter">{{ scope.row.FStatusName }}</el-tag>
-        </template>
-      </el-table-column>
-      <el-table-column label="审核人" width="100px" align="center">
-        <template slot-scope="scope">
-          <span>{{ scope.row.FVerifierName }}</span>
-        </template>
-      </el-table-column>
-      <el-table-column label="审核日期" width="100px" align="center">
-        <template slot-scope="scope">
-          <span>{{ scope.row.FVerifierDate }}</span>
-        </template>
-      </el-table-column>
-      <el-table-column label="备注" width="100px" align="center">
-        <template slot-scope="scope">
-          <span>{{ scope.row.FRemark }}</span>
-        </template>
-      </el-table-column>
-      <el-table-column label="U8单号" width="150px" align="center">
-        <template slot-scope="scope">
-          <span>{{ scope.row.FU8BillNo }}</span>
-        </template>
-      </el-table-column>
-      <el-table-column label="行号" width="50px" align="center">
-        <template slot-scope="scope">
-          <span>{{ scope.row.FNo }}</span>
-        </template>
-      </el-table-column>
-      <el-table-column label="存货编码" width="140px" align="center">
-        <template slot-scope="scope">
-          <span>{{ scope.row.FInvCode }}</span>
-        </template>
-      </el-table-column>
-      <el-table-column label="存货名称" width="240px" align="center">
-        <template slot-scope="scope">
-          <span>{{ scope.row.FInvName }}</span>
-        </template>
-      </el-table-column>
-      <el-table-column label="存货规格" width="100px" align="center">
-        <template slot-scope="scope">
-          <span>{{ scope.row.FInvStd }}</span>
-        </template>
-      </el-table-column>
-      <el-table-column label="单位" width="80px" align="center">
-        <template slot-scope="scope">
-          <span>{{ scope.row.FComUnitName }}</span>
-        </template>
-      </el-table-column>
-      <el-table-column label="数量" width="60px" align="center">
-        <template slot-scope="scope">
-          <span>{{ scope.row.FQty }}</span>
-        </template>
-      </el-table-column>
-      <el-table-column label="面价" width="60px" align="center">
-        <template slot-scope="scope">
-          <span>{{ scope.row.FPlanPrice }}</span>
-        </template>
-      </el-table-column>
-      <!-- <el-table-column label="日期" width="100px" align="center">
+        <el-table-column
+          label="操作"
+          align="center"
+          :width="specialWidth"
+          class-name="small-padding fixed-width"
+        >
+          <template slot-scope="scope">
+            <el-button
+              type="danger"
+              size="mini"
+              v-permission="['seller','admin']"
+              v-if="scope.row.FStatus === 0"
+              :loading="btnIsLoading"
+              @click="handleAudit(scope)"
+            >审批</el-button>
+            <el-button
+              type="info"
+              size="mini"
+              v-permission="['seller','admin']"
+              v-if="scope.row.FStatus === 1"
+              :loading="btnIsLoading"
+              @click="handleUnAudit(scope)"
+            >弃审</el-button>
+            <el-button
+              type="danger"
+              size="mini"
+              v-permission="['seller','admin']"
+              v-if="scope.row.FStatus === 1"
+              :loading="btnIsLoading"
+              @click="handleBuild(scope)"
+            >生单</el-button>
+            <el-button size="mini" @click="handleShow(scope.row)">查看</el-button>
+            <el-button
+              type="danger"
+              size="mini"
+              @click="handleDel(scope.row)"
+              v-if="scope.row.FStatus===0 && judgeRole()"
+            >删除</el-button>
+          </template>
+        </el-table-column>
+        <el-table-column label="销售类型" width="120px" align="center">
+          <template slot-scope="scope">
+            <span>{{ scope.row.FSTName }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="预订单号" width="180px" align="center">
+          <template slot-scope="scope">
+            <span>{{ scope.row.FBillNo }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="日期" width="100px" align="center">
+          <template slot-scope="scope">
+            <span>{{ scope.row.FDate }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="经销商" width="100px" align="center">
+          <template slot-scope="scope">
+            <span>{{ scope.row.FTraderName }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="客户" width="150px" align="center">
+          <template slot-scope="scope">
+            <span>{{ scope.row.FCusName }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="税率" width="60px" align="center">
+          <template slot-scope="scope">
+            <span>{{ scope.row.FTaxRate }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="制单人" width="100px" align="center">
+          <template slot-scope="scope">
+            <span>{{ scope.row.FBillerName }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="状态" width="80px" align="center">
+          <template slot-scope="scope">
+            <el-tag :type="scope.row.FStatus | statusFilter">{{ scope.row.FStatusName }}</el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column label="审核人" width="100px" align="center">
+          <template slot-scope="scope">
+            <span>{{ scope.row.FVerifierName }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="审核日期" width="100px" align="center">
+          <template slot-scope="scope">
+            <span>{{ scope.row.FVerifierDate }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="备注" width="100px" align="center">
+          <template slot-scope="scope">
+            <span>{{ scope.row.FRemark }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="U8单号" width="150px" align="center">
+          <template slot-scope="scope">
+            <span>{{ scope.row.FU8BillNo }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="行号" width="50px" align="center">
+          <template slot-scope="scope">
+            <span>{{ scope.row.FNo }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="存货编码" width="140px" align="center">
+          <template slot-scope="scope">
+            <span>{{ scope.row.FInvCode }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="存货名称" width="240px" align="center">
+          <template slot-scope="scope">
+            <span>{{ scope.row.FInvName }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="存货规格" width="100px" align="center">
+          <template slot-scope="scope">
+            <span>{{ scope.row.FInvStd }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="单位" width="80px" align="center">
+          <template slot-scope="scope">
+            <span>{{ scope.row.FComUnitName }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="数量" width="60px" align="center">
+          <template slot-scope="scope">
+            <span>{{ scope.row.FQty }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="面价" width="60px" align="center">
+          <template slot-scope="scope">
+            <span>{{ scope.row.FPlanPrice }}</span>
+          </template>
+        </el-table-column>
+        <!-- <el-table-column label="日期" width="100px" align="center">
         <template slot-scope="scope">
           <span>{{ scope.row.FPrice }}</span>
         </template>
-      </el-table-column>-->
-      <!-- <el-table-column label="日期" width="100px" align="center">
+        </el-table-column>-->
+        <!-- <el-table-column label="日期" width="100px" align="center">
         <template slot-scope="scope">
           <span>{{ scope.row.FAmount }}</span>
         </template>
-      </el-table-column>-->
-      <el-table-column label="含税单价" width="60px" align="center">
-        <template slot-scope="scope">
-          <span>{{ scope.row.FTaxPrice }}</span>
-        </template>
-      </el-table-column>
-      <el-table-column label="税额" width="60px" align="center">
-        <template slot-scope="scope">
-          <span>{{ scope.row.FTaxAmount}}</span>
-        </template>
-      </el-table-column>
-      <el-table-column label="折扣额" width="60px" align="center">
-        <template slot-scope="scope">
-          <span>{{ scope.row.FDisAmount}}</span>
-        </template>
-      </el-table-column>
-      <el-table-column label="价税合计" width="60px" align="center">
-        <template slot-scope="scope">
-          <span>{{ scope.row.FSum}}</span>
-        </template>
-      </el-table-column>
-      <el-table-column label="到货日期" width="100px" align="center">
-        <template slot-scope="scope">
-          <span>{{ scope.row.FRequestDate}}</span>
-        </template>
-      </el-table-column>
-      <el-table-column label="特价项目" width="100px" align="center">
-        <template slot-scope="scope">
-          <span>{{ scope.row.FProject}}</span>
-        </template>
-      </el-table-column>
-      <el-table-column label="分录备注" width="100px" align="center">
-        <template slot-scope="scope">
-          <span>{{ scope.row.FEntryRemark}}</span>
-        </template>
-      </el-table-column>
-      <el-table-column label="最终无税单价" width="80px" align="center">
-        <template slot-scope="scope">
-          <span>{{ scope.row.FPrice2}}</span>
-        </template>
-      </el-table-column>
-      <el-table-column label="最终无税金额" width="80px" align="center">
-        <template slot-scope="scope">
-          <span>{{ scope.row.FAmount2}}</span>
-        </template>
-      </el-table-column>
-      <el-table-column label="最终含税单价" width="80px" align="center">
-        <template slot-scope="scope">
-          <span>{{ scope.row.FTaxPrice2}}</span>
-        </template>
-      </el-table-column>
-      <el-table-column label="最终价税合计" width="80px" align="center">
-        <template slot-scope="scope">
-          <span>{{ scope.row.FSum2}}</span>
-        </template>
-      </el-table-column>
-    </el-table>
-
+        </el-table-column>-->
+        <el-table-column label="含税单价" width="60px" align="center">
+          <template slot-scope="scope">
+            <span>{{ scope.row.FTaxPrice }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="税额" width="60px" align="center">
+          <template slot-scope="scope">
+            <span>{{ scope.row.FTaxAmount}}</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="折扣额" width="60px" align="center">
+          <template slot-scope="scope">
+            <span>{{ scope.row.FDisAmount}}</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="价税合计" width="60px" align="center">
+          <template slot-scope="scope">
+            <span>{{ scope.row.FSum}}</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="到货日期" width="100px" align="center">
+          <template slot-scope="scope">
+            <span>{{ scope.row.FRequestDate}}</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="特价项目" width="100px" align="center">
+          <template slot-scope="scope">
+            <span>{{ scope.row.FProject}}</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="分录备注" width="100px" align="center">
+          <template slot-scope="scope">
+            <span>{{ scope.row.FEntryRemark}}</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="最终无税单价" width="80px" align="center">
+          <template slot-scope="scope">
+            <span>{{ scope.row.FPrice2}}</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="最终无税金额" width="80px" align="center">
+          <template slot-scope="scope">
+            <span>{{ scope.row.FAmount2}}</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="最终含税单价" width="80px" align="center">
+          <template slot-scope="scope">
+            <span>{{ scope.row.FTaxPrice2}}</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="最终价税合计" width="80px" align="center">
+          <template slot-scope="scope">
+            <span>{{ scope.row.FSum2}}</span>
+          </template>
+        </el-table-column>
+      </el-table>
+    </div>
     <pagination
       v-show="total>0"
       :total="total"
@@ -456,6 +458,9 @@ export default {
       const start = new Date();
       start.setTime(start.getTime() - 3600 * 1000 * 24 * 7);
       return [start, end];
+    },
+    maxheight: function() {
+      return window.innerHeight * 0.6;
     }
   },
   created() {
@@ -734,6 +739,34 @@ export default {
           colspan: _col
         };
       }
+    },
+    getSummaries(param) {
+      const { columns, data } = param;
+      const sums = [];
+      columns.forEach((column, index) => {
+        if (index === 0) {
+          sums[index] = "合计";
+          return;
+        }
+        if (column.label == `数量`) {
+          const values = data.map(item => Number(item.FQty));
+          if (!values.every(value => isNaN(value))) {
+            sums[index] = values.reduce((prev, curr) => {
+              const value = Number(curr);
+              if (!isNaN(value)) {
+                return prev + curr;
+              } else {
+                return prev;
+              }
+            }, 0);
+            sums[index];
+          } else {
+            sums[index] = "";
+          }
+        }
+      });
+
+      return sums;
     }
   }
 };

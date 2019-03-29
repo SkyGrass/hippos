@@ -95,6 +95,7 @@
       :data="list"
       border
       highlight-current-row
+      :height="maxheight"
       :span-method="objectSpanMethod"
       style="width: 100%;"
     >
@@ -450,6 +451,9 @@ export default {
       const role = [...this.$store.getters.roles].shift();
       const grouprole1 = ["seller", "admin", "sa"];
       return grouprole1.findIndex(f => f === role) > -1 ? "300px" : "200px";
+    },
+    maxheight: function() {
+      return window.innerHeight * 0.6;
     }
   },
   created() {

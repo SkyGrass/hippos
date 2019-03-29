@@ -39,7 +39,7 @@
               class="fixitem"
               v-model="orderForm.FCusName"
               placeholder="请选择客户"
-              clearable
+              :clearable="clearable"
               filterable
               :filter-method="filterU8"
               :disabled="canEdit"
@@ -197,112 +197,116 @@
         :loading="btnIsLoading"
       >生单</el-button>
     </el-button-group>
-    <el-table
-      v-loading="listLoading"
-      :data="list"
-      border
-      highlight-current-row
-      style="margin-top:10px"
-    >
-      <el-table-column align="center" label="行号" width="50">
-        <template slot-scope="scope">
-          <span>{{ scope.row.FNo }}</span>
-        </template>
-      </el-table-column>
-      <el-table-column align="center" label="操作" width="120">
-        <template slot-scope="scope">
-          <el-button
-            type="danger"
-            size="mini"
-            style="width:40px"
-            icon="el-icon-delete"
-            :disabled="canEdit"
-            @click="delRow(scope.$index)"
-          ></el-button>
-          <el-button
-            v-if="scope.row.edit"
-            type="success"
-            size="mini"
-            style="width:40px"
-            icon="el-icon-circle-check-outline"
-            :disabled="canEdit"
-            @click="confirmEdit(scope.row)"
-          ></el-button>
-          <el-button
-            v-else
-            type="primary"
-            size="mini"
-            style="width:40px"
-            icon="el-icon-edit"
-            :disabled="canEdit"
-            @click="scope.row.edit=!scope.row.edit"
-          ></el-button>
-        </template>
-      </el-table-column>
-      <el-table-column align="center" label="存货编码" width="200">
-        <template slot-scope="scope">
-          <template v-if="scope.row.edit">
-            <el-input
-              size="mini"
-              placeholder="输入存货编码/名称 回车检索"
-              v-model="scope.row.FInvCode"
-              class="input-with-select"
-              @focus="changeCurrentRow(scope.$index)"
-              @blur="onSearch(scope.row)"
-              @keyup.enter.native="onSearch(scope.row)"
-            >
-              <el-button slot="append" icon="el-icon-search" @click="showInvList(scope)"></el-button>
-            </el-input>
+    <div class="claim_company">
+      <el-table
+        v-loading="listLoading"
+        :data="list"
+        border
+        highlight-current-row
+        style="margin-top:10px"
+        @header-click="headerclick"
+        :show-summary="showsummary"
+        :summary-method="getSummary"
+      >
+        <el-table-column align="center" label="行号" width="50">
+          <template slot-scope="scope">
+            <span>{{ scope.row.FNo }}</span>
           </template>
-          <span v-else>{{ scope.row.FInvCode }}</span>
-        </template>
-      </el-table-column>
-
-      <el-table-column align="center" label="存货名称" width="250">
-        <template slot-scope="scope">
-          <span>{{ scope.row.FInvName }}</span>
-        </template>
-      </el-table-column>
-      <el-table-column align="center" label="存货规格" width="100">
-        <template slot-scope="scope">
-          <span>{{ scope.row.FInvStd }}</span>
-        </template>
-      </el-table-column>
-      <el-table-column align="center" label="单位" width="50">
-        <template slot-scope="scope">
-          <span>{{ scope.row.FInvUnitName }}</span>
-        </template>
-      </el-table-column>
-
-      <el-table-column align="center" label="数量" width="150">
-        <template slot-scope="scope">
-          <template v-if="scope.row.edit">
-            <el-input-number
+        </el-table-column>
+        <el-table-column align="center" label="操作" width="120">
+          <template slot-scope="scope">
+            <el-button
+              type="danger"
               size="mini"
-              v-model="scope.row.FQty"
-              @change="handleChange($event ,scope.$index)"
-              :min="0.1"
-              :max="10000"
-              :step="0.1"
-            ></el-input-number>
+              style="width:40px"
+              icon="el-icon-delete"
+              :disabled="canEdit"
+              @click="delRow(scope.$index)"
+            ></el-button>
+            <el-button
+              v-if="scope.row.edit"
+              type="success"
+              size="mini"
+              style="width:40px"
+              icon="el-icon-circle-check-outline"
+              :disabled="canEdit"
+              @click="confirmEdit(scope.row)"
+            ></el-button>
+            <el-button
+              v-else
+              type="primary"
+              size="mini"
+              style="width:40px"
+              icon="el-icon-edit"
+              :disabled="canEdit"
+              @click="scope.row.edit=!scope.row.edit"
+            ></el-button>
           </template>
-          <span v-else>{{ scope.row.FQty }}</span>
-        </template>
-      </el-table-column>
+        </el-table-column>
+        <el-table-column align="center" label="存货编码" width="200">
+          <template slot-scope="scope">
+            <template v-if="scope.row.edit">
+              <el-input
+                size="mini"
+                placeholder="输入存货编码/名称 回车检索"
+                v-model="scope.row.FInvCode"
+                class="input-with-select"
+                @focus="changeCurrentRow(scope.$index)"
+                @change="transSearch"
+                @keyup.enter.native="onSearch(scope)"
+              >
+                <el-button slot="append" icon="el-icon-search" @click="showInvList(scope)"></el-button>
+              </el-input>
+            </template>
+            <span v-else>{{ scope.row.FInvCode }}</span>
+          </template>
+        </el-table-column>
 
-      <el-table-column align="center" label="面价" width="80">
-        <template slot-scope="scope">
-          <span>{{ scope.row.FPlanPrice }}</span>
-        </template>
-      </el-table-column>
+        <el-table-column align="center" label="存货名称" width="250">
+          <template slot-scope="scope">
+            <span>{{ scope.row.FInvName }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column align="center" label="存货规格" width="100">
+          <template slot-scope="scope">
+            <span>{{ scope.row.FInvStd }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column align="center" label="单位" width="50">
+          <template slot-scope="scope">
+            <span>{{ scope.row.FInvUnitName }}</span>
+          </template>
+        </el-table-column>
 
-      <el-table-column align="center" label="含税单价" width="80">
-        <template slot-scope="scope">
-          <span>{{ scope.row.FTaxPrice }}</span>
-        </template>
-      </el-table-column>
+        <el-table-column align="center" label="数量" width="150">
+          <template slot-scope="scope">
+            <template v-if="scope.row.edit">
+              <el-input-number
+                size="mini"
+                v-model="scope.row.FQty"
+                @change="handleChange($event ,scope.$index)"
+                :min="0.1"
+                :max="10000"
+                :step="0.1"
+              ></el-input-number>
+            </template>
+            <span v-else>{{ scope.row.FQty }}</span>
+          </template>
+        </el-table-column>
 
-      <!-- <el-table-column align="center" label="无税单价" width="80">
+        <el-table-column align="center" label="面价" width="80">
+          <template slot-scope="scope">
+            <span>{{ scope.row.FPlanPrice }}</span>
+          </template>
+        </el-table-column>
+
+        <el-table-column align="center" label="含税单价" width="80">
+          <template slot-scope="scope">
+            <span>{{ scope.row.FTaxPrice }}</span>
+          </template>
+        </el-table-column>
+
+        <!-- <el-table-column align="center" label="无税单价" width="80">
         <template slot-scope="scope">
           <span>{{ scope.row.FPrice }}</span>
         </template>
@@ -312,92 +316,92 @@
         <template slot-scope="scope">
           <span>{{ scope.row.FAmount }}</span>
         </template>
-      </el-table-column>-->
-      <el-table-column align="center" label="税率" width="50">
-        <template slot-scope="scope">
-          <span>{{ scope.row.FTaxRate }}</span>
-        </template>
-      </el-table-column>
-
-      <el-table-column align="center" label="税额" width="50">
-        <template slot-scope="scope">
-          <span>{{ scope.row.FTaxAmount }}</span>
-        </template>
-      </el-table-column>
-
-      <el-table-column align="center" label="折扣额" width="80">
-        <template slot-scope="scope">
-          <span>{{ scope.row.FDisAmount }}</span>
-        </template>
-      </el-table-column>
-
-      <el-table-column align="center" label="价税合计" width="80">
-        <template slot-scope="scope">
-          <span>{{ scope.row.FSum }}</span>
-        </template>
-      </el-table-column>
-
-      <el-table-column align="center" label="到货日期" width="200">
-        <template slot-scope="scope">
-          <template v-if="scope.row.edit">
-            <el-date-picker
-              size="mini"
-              style="width:80%"
-              format="yyyy-MM-dd"
-              value-format="yyyy-MM-dd"
-              v-model="scope.row.FRequestDate"
-              type="date"
-              placeholder="选择日期"
-              :picker-options="pickerOptionsStartForRequest"
-            ></el-date-picker>
+        </el-table-column>-->
+        <el-table-column align="center" label="税率" width="50">
+          <template slot-scope="scope">
+            <span>{{ scope.row.FTaxRate }}</span>
           </template>
-          <span v-else>{{ scope.row.FRequestDate.split(' ')[0].replace(/\//g,'-') }}</span>
-        </template>
-      </el-table-column>
+        </el-table-column>
 
-      <el-table-column align="center" label="特价项目" width="200">
-        <template slot-scope="scope">
-          <template v-if="scope.row.edit">
-            <el-input type="text" size="mini" placeholder="请输入" v-model="scope.row.FProject"/>
+        <el-table-column align="center" label="税额" width="50">
+          <template slot-scope="scope">
+            <span>{{ scope.row.FTaxAmount }}</span>
           </template>
-          <span v-else>{{ scope.row.FProject }}</span>
-        </template>
-      </el-table-column>
+        </el-table-column>
 
-      <el-table-column align="center" label="分录备注" width="200">
-        <template slot-scope="scope">
-          <template v-if="scope.row.edit">
-            <el-input type="text" size="mini" placeholder="请输入" v-model="scope.row.FEntryRemark"/>
+        <el-table-column align="center" label="折扣额" width="80">
+          <template slot-scope="scope">
+            <span>{{ scope.row.FDisAmount }}</span>
           </template>
-          <span v-else>{{ scope.row.FEntryRemark }}</span>
-        </template>
-      </el-table-column>
+        </el-table-column>
 
-      <el-table-column align="center" label="最终无税单价" width="120" v-if="formStatus==='look'">
-        <template slot-scope="scope">
-          <span>{{ scope.row.FPrice2 }}</span>
-        </template>
-      </el-table-column>
+        <el-table-column align="center" label="价税合计" width="80">
+          <template slot-scope="scope">
+            <span>{{ scope.row.FSum }}</span>
+          </template>
+        </el-table-column>
 
-      <el-table-column align="center" label="最终无税金额" width="120" v-if="formStatus==='look'">
-        <template slot-scope="scope">
-          <span>{{ scope.row.FAmount2 }}</span>
-        </template>
-      </el-table-column>
+        <el-table-column align="center" label="到货日期(点击复制)" width="200">
+          <template slot-scope="scope">
+            <template v-if="scope.row.edit">
+              <el-date-picker
+                size="mini"
+                style="width:80%"
+                format="yyyy-MM-dd"
+                value-format="yyyy-MM-dd"
+                v-model="scope.row.FRequestDate"
+                type="date"
+                placeholder="选择日期"
+                :picker-options="pickerOptionsStartForRequest"
+              ></el-date-picker>
+            </template>
+            <span v-else>{{ scope.row.FRequestDate.split(' ')[0].replace(/\//g,'-') }}</span>
+          </template>
+        </el-table-column>
 
-      <el-table-column align="center" label="最终含税单价" width="120" v-if="formStatus==='look'">
-        <template slot-scope="scope">
-          <span>{{ scope.row.FTaxPrice2 }}</span>
-        </template>
-      </el-table-column>
+        <el-table-column align="center" label="特价项目(点击复制)" width="200">
+          <template slot-scope="scope">
+            <template v-if="scope.row.edit">
+              <el-input type="text" size="mini" placeholder="请输入" v-model="scope.row.FProject"/>
+            </template>
+            <span v-else>{{ scope.row.FProject }}</span>
+          </template>
+        </el-table-column>
 
-      <el-table-column align="center" label="最终价税合计" width="120" v-if="formStatus==='look'">
-        <template slot-scope="scope">
-          <span>{{ scope.row.FSum2 }}</span>
-        </template>
-      </el-table-column>
-    </el-table>
+        <el-table-column align="center" label="分录备注" width="200">
+          <template slot-scope="scope">
+            <template v-if="scope.row.edit">
+              <el-input type="text" size="mini" placeholder="请输入" v-model="scope.row.FEntryRemark"/>
+            </template>
+            <span v-else>{{ scope.row.FEntryRemark }}</span>
+          </template>
+        </el-table-column>
 
+        <el-table-column align="center" label="最终无税单价" width="120" v-if="formStatus==='look'">
+          <template slot-scope="scope">
+            <span>{{ scope.row.FPrice2 }}</span>
+          </template>
+        </el-table-column>
+
+        <el-table-column align="center" label="最终无税金额" width="120" v-if="formStatus==='look'">
+          <template slot-scope="scope">
+            <span>{{ scope.row.FAmount2 }}</span>
+          </template>
+        </el-table-column>
+
+        <el-table-column align="center" label="最终含税单价" width="120" v-if="formStatus==='look'">
+          <template slot-scope="scope">
+            <span>{{ scope.row.FTaxPrice2 }}</span>
+          </template>
+        </el-table-column>
+
+        <el-table-column align="center" label="最终价税合计" width="120" v-if="formStatus==='look'">
+          <template slot-scope="scope">
+            <span>{{ scope.row.FSum2 }}</span>
+          </template>
+        </el-table-column>
+      </el-table>
+    </div>
     <el-dialog :visible.sync="dialogInvVisible" title="存货列表" v-el-drag-dialog width="60%">
       <div class="filter-container">
         <el-input
@@ -610,7 +614,29 @@ export default {
       },
       pickerOptionsStartForRequest: {},
       btnIsLoading: false,
-      haveDel: false
+      haveDel: false,
+      summaryColumns: [
+        {
+          label: `数量`,
+          fieldname: `FQty`
+        },
+        {
+          label: `税额`,
+          fieldname: `FTaxAmount`
+        },
+        {
+          label: `价税合计`,
+          fieldname: `FSum`
+        },
+        {
+          label: `最终无税金额`,
+          fieldname: `FAmount2`
+        },
+        {
+          label: `最终价税合计`,
+          fieldname: `FSum2`
+        }
+      ]
     };
   },
   watch: {
@@ -649,6 +675,9 @@ export default {
     }
   },
   methods: {
+    transSearch(val) {
+      this.listQuery.searchword = val;
+    },
     changeCus(value) {
       this.orderForm.FCustCode = value;
     },
@@ -683,39 +712,43 @@ export default {
     changeCurrentRow(rowIndex) {
       this.currentRow = rowIndex;
     },
-    onSearch(row) {
-      if (row.FInvCode === ``) return;
-      if (row.FInvCode === undefined) return;
-
-      fetchInvList(
-        Object.assign({}, this.listQuery, { searchword: row.FInvCode })
-      ).then(response => {
-        this.dialogInvVisible = true;
-        const { data, state, message } = response.data;
-        if (state === `success`) {
-          if (data.items.length > 0) {
-            this.invList = data.items;
-            this.invTotal = data.total;
+    onSearch(scope) {
+      const row = scope.row;
+      if (row.FInvCode === `` || row.FInvCode === undefined) {
+        this.dialogInvVisible = !this.dialogInvVisible;
+        this.currentRow = scope.$index;
+        this.getInvList(scope.row);
+      } else {
+        fetchInvList(
+          Object.assign({}, this.listQuery, { searchword: row.FInvCode })
+        ).then(response => {
+          this.dialogInvVisible = true;
+          const { data, state, message } = response.data;
+          if (state === `success`) {
+            if (data.items.length > 0) {
+              this.invList = data.items;
+              this.invTotal = data.total;
+            } else {
+              const _data = [Object.assign({}, this.orderForm)];
+              this.confirm(_data);
+              this.$notify({
+                title: "提示",
+                message: "没有查询到数据!",
+                type: "warning",
+                duration: 2000
+              });
+            }
           } else {
-            const _data = [Object.assign({}, this.orderForm)];
-            this.confirm(_data);
             this.$notify({
-              title: "提示",
-              message: "没有查询到数据!",
+              title: "错误",
+              message: message,
               type: "warning",
               duration: 2000
             });
           }
-        } else {
-          this.$notify({
-            title: "错误",
-            message: message,
-            type: "warning",
-            duration: 2000
-          });
-        }
-        this.invListLoading = false;
-      });
+          this.invListLoading = false;
+        });
+      }
     },
     getInvList(row) {
       this.invListLoading = true;
@@ -1084,6 +1117,50 @@ export default {
     },
     haveAudit() {
       return this.orderForm.FStatus > 0;
+    },
+    headerclick(column, event) {
+      const { label } = column;
+      if (label == `到货日期(点击复制)`) {
+        if (this.formStatus == `add` || this.formStatus == `edit`) {
+          const _row = [...this.list].filter(f => f.FRequestDate != "").shift();
+          _row && this.list.forEach(f => (f.FRequestDate = _row.FRequestDate));
+        }
+      }
+      if (label == `特价项目(点击复制)`) {
+        if (this.formStatus == `add` || this.formStatus == `edit`) {
+          const _row = [...this.list].filter(f => f.FProject != "").shift();
+          _row && this.list.forEach(f => (f.FProject = _row.FProject));
+        }
+      }
+    },
+    getSummary(param) {
+      const { columns, data } = param;
+      const sums = [];
+      columns.forEach((column, index) => {
+        if (index === 0) {
+          sums[index] = "合计";
+          return;
+        }
+        if (this.summaryColumns.findIndex(f => f.label == column.label) > -1) {
+          const _c = this.summaryColumns.find(f => f.label == column.label);
+          const values = data.map(item => Number(item[_c.fieldname]));
+          if (!values.every(value => isNaN(value))) {
+            sums[index] = values.reduce((prev, curr) => {
+              const value = Number(curr);
+              if (!isNaN(value)) {
+                return Calc.sum(prev, curr);
+              } else {
+                return prev;
+              }
+            }, 0);
+            sums[index];
+          } else {
+            sums[index] = "";
+          }
+        }
+      });
+
+      return sums;
     }
   },
   mounted() {
@@ -1099,7 +1176,7 @@ export default {
       }
       if (this.currentRole == `customer`) {
         this.orderForm.FCustCode = this.$store.getters.cuscode;
-        this.orderForm.FCusName = this.$store.getters.name;
+        // this.orderForm.FCusName = this.$store.getters.name; // 2019-03-29 客户取消名称绑定
         this.orderForm.FType = 2; //客户是2
       }
       if (this.currentRole == `admin`) {
@@ -1142,7 +1219,7 @@ export default {
         .catch(() => {});
     }
     if (this.currentRole == `customer`) {
-      fetchU8CusListWithCode({ cuscode: this.orderForm.FCustCode })
+      fetchU8CusListWithCode({ cuscode: this.$store.getters.username })
         .then(response => {
           const { data, message, state } = response.data;
           if (state === `success`) {
@@ -1184,6 +1261,15 @@ export default {
         FNo: this.list.length + 1
       })
     );
+  },
+  computed: {
+    showsummary: function() {
+      return true; //this.orderForm.FStatus == 2 && this.formStatus == "look";
+    },
+    clearable: function() {
+      this.currentRole = [...this.$store.getters.roles].shift();
+      return this.currentRole == `customer` && this.formStatus == `add` || this.formStatus == `edit`;
+    }
   }
 };
 </script>
@@ -1194,5 +1280,20 @@ export default {
 }
 .offset {
   width: 180px;
+}
+</style>
+<style  lang='less'>
+.claim_company {
+  .el-table {
+    overflow: auto;
+  }
+  .el-table__body-wrapper,
+  .el-table__header-wrapper,
+  .el-table__footer-wrapper {
+    overflow: visible;
+  }
+  .el-table::after {
+    position: relative !important;
+  }
 }
 </style>
