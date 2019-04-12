@@ -230,6 +230,16 @@
             <span>{{ scope.row.FQty }}</span>
           </template>
         </el-table-column>
+        <el-table-column label="体积" width="60px" align="center">
+          <template slot-scope="scope">
+            <span>{{ scope.row.FVolume }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="总体积" width="60px" align="center">
+          <template slot-scope="scope">
+            <span>{{ scope.row.FTotalVolume }}</span>
+          </template>
+        </el-table-column>
         <el-table-column label="面价" width="60px" align="center">
           <template slot-scope="scope">
             <span>{{ scope.row.FPlanPrice }}</span>

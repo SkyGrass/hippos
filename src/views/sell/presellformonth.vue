@@ -206,6 +206,7 @@
         @header-click="headerclick"
         :show-summary="showsummary"
         :summary-method="getSummary"
+        :max-height="maxheight"
         style="margin-top:10px"
       >
         <el-table-column align="center" label="行号" width="50">
@@ -291,6 +292,18 @@
               ></el-input-number>
             </template>
             <span v-else>{{ scope.row.FQty }}</span>
+          </template>
+        </el-table-column>
+
+        <el-table-column align="center" label="体积" width="80">
+          <template slot-scope="scope">
+            <span>{{ scope.row.FVolume }}</span>
+          </template>
+        </el-table-column>
+
+        <el-table-column align="center" label="总体积" width="80">
+          <template slot-scope="scope">
+            <span>{{ scope.row.FTotalVolume }}</span>
           </template>
         </el-table-column>
 
@@ -541,7 +554,7 @@ export default {
         FCusName: "",
         FDealerCode: "",
         FDealerName: "",
-        FTaxRate: 16,
+        FTaxRate: 13,
         FBiller: "",
         FBillerName: "",
         FVerifier: "",
@@ -565,7 +578,7 @@ export default {
         FTaxPrice: 0.0,
         FPrice: 0.0,
         FAmount: 0.0,
-        FTaxRate: 16,
+        FTaxRate: 13,
         FDisAmount: 0.0,
         FSum: 0.0,
         FRequestDate: "",
@@ -575,7 +588,9 @@ export default {
         FPrice2: 0.0,
         FAmount2: 0.0,
         FTaxPrice2: 0.0,
-        FSum2: 0.0
+        FSum2: 0.0,
+        FVolume: 0,
+        FTotalVolume: 0,
       },
       rules: {
         FBillNo: [
@@ -620,6 +635,14 @@ export default {
         {
           label: `数量`,
           fieldname: `FQty`
+        },
+        {
+          label: `体积`,
+          fieldname: `FVolume`
+        },
+        {
+          label: `总体积`,
+          fieldname: `FTotalVolume`
         },
         {
           label: `税额`,
@@ -775,6 +798,8 @@ export default {
           this.list[this.currentRow].FInvUnitCode = selected[i].ccomunitcode;
           this.list[this.currentRow].FInvUnitName = selected[i].ccomunitname;
           this.list[this.currentRow].FQty = selected[i].fminquantity;
+          this.list[this.currentRow].FVolume = selected[i].ivolume;
+          this.list[this.currentRow].FTotalVolume = 1 * selected[i].ivolume;
           this.list[this.currentRow].FPlanPrice = selected[i].iuprice; //面价:从存货价格表中取
           this.list[this.currentRow].FPlanPrice = selected[i].iuprice; //面价:从存货价格表中取
           this.list[this.currentRow].FTaxPrice = selected[i].iinvnowcost; //含税单价:默认从客户价格表中取，没有就取面价 ();
@@ -839,6 +864,7 @@ export default {
       this.list[nv].FTaxAmount = FTaxAmount.toFixed(2); //无税金额:数量*无税单价
       this.list[nv].FSum = FSum.toFixed(2); //无税金额:数量*无税单价
       this.list[nv].FDisAmount = FDisAmount.toFixed(2); //折扣额:数量*(面价-含税单价）
+      this.list[nv].FTotalVolume = Calc.multiply(FVolume, FQty); //总体积:体积*数量
     },
     addRow() {
       this.list.push(
@@ -1257,6 +1283,9 @@ export default {
   computed: {
     showsummary: function() {
       return true; //this.orderForm.FStatus == 2 && this.formStatus == "look";
+    },
+    maxheight: function() {
+      return window.innerHeight * 0.4;
     }
   }
 };
@@ -1278,7 +1307,7 @@ export default {
   .el-table__body-wrapper,
   .el-table__header-wrapper,
   .el-table__footer-wrapper {
-    overflow: visible;
+    // overflow: visible;
   }
   .el-table::after {
     position: relative !important;
