@@ -78,3 +78,11 @@ export function delPreSell(data) {
     data
   });
 }
+
+export function GetPreviewData(data){
+  return request({
+    url: "/presell/GetPreviewData",
+    method: "post",
+    data
+  });
+}

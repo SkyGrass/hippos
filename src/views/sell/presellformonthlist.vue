@@ -26,7 +26,7 @@
           </el-select>
           <el-select
             v-model="listQuery.ccuscode"
-            placeholder="客户"
+            placeholder="开单客户"
             filterable
             :filter-method="filterCus"
             clearable
@@ -159,7 +159,7 @@
           <span>{{ scope.row.FTraderName }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="客户" width="150px" align="center">
+      <el-table-column label="开单客户" width="150px" align="center">
         <template slot-scope="scope">
           <span>{{ scope.row.FCusName }}</span>
         </template>

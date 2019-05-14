@@ -34,11 +34,11 @@
           </el-form-item>
         </el-col>
         <el-col :span="6">
-          <el-form-item label="客户" prop="FCusName" required>
+          <el-form-item label="开单客户" prop="FCusName" required>
             <el-select
               class="fixitem"
               v-model="orderForm.FCusName"
-              placeholder="请选择客户"
+              placeholder="请选择开单客户"
               clearable
               filterable
               :filter-method="filterU8"
@@ -196,6 +196,27 @@
         v-if="orderForm.FStatus ==='1'"
         :loading="btnIsLoading"
       >生单</el-button>
+    </el-button-group>
+    <el-button-group style="margin-top:20px" v-permission="['customer','trader','admin']">
+      <el-button
+        type="primary"
+        icon="el-icon-circle-check-outline"
+        @click="PreviewBill"
+        :loading="btnIsLoading"
+      >预览</el-button>
+    </el-button-group>
+    <el-button-group style="margin-top:20px">
+      <el-popover
+        placement="top-start"
+        title="友情提醒"
+        width="400"
+        trigger="hover"
+        content="根据结算关系是两方还是三方，下单时需分两种情况：
+          一、如是两方关系，即付款、开票客户均为经销商，则经销商、开票客户两个信息栏统一填写经销商名称。
+          二、如是三方关系，有经销商作为服务商，则经销商选项那栏填写服务商单位名称，开票客户那栏填写建设单位名称，即最终开票单位。"
+      >
+        <el-button slot="reference">友情提醒</el-button>
+      </el-popover>
     </el-button-group>
     <div class="claim_company">
       <el-table
@@ -509,6 +530,76 @@
         <!-- <el-button type="primary" @click="confirm()">确认</el-button> -->
       </div>
     </el-dialog>
+    <el-dialog :visible.sync="dialogPreviewVisible" title="订单预览" v-el-drag-dialog width="95%">
+      <div class="filter-container" style="display:flex;font-size:16px">
+        <legend>
+          <fieldset>
+            <legend>单据信息</legend>
+            <table>
+              <tr v-for="(value, key,index) in orderFormPre" v-bind:key="index">
+                <td>{{key}}:{{value}}</td>
+              </tr>
+            </table>
+          </fieldset>
+        </legend>
+        <div style="display:flex;flex-direction:column">
+          <legend>
+            <fieldset>
+              <legend>列表信息</legend>
+              <table style="border-collapse:collapse;border:1px solid black;text-align:center">
+                <thead>
+                  <th style="border-collapse:collapse;border:1px solid black;text-align:center">行号</th>
+                  <th style="border-collapse:collapse;border:1px solid black;text-align:center">存货编码</th>
+                  <th style="border-collapse:collapse;border:1px solid black;text-align:center">存货名称</th>
+                  <th style="border-collapse:collapse;border:1px solid black;text-align:center">存货规格</th>
+                  <th style="border-collapse:collapse;border:1px solid black;text-align:center">单位</th>
+                  <th style="border-collapse:collapse;border:1px solid black;text-align:center">数量</th>
+                  <th style="border-collapse:collapse;border:1px solid black;text-align:center">体积</th>
+                  <th style="border-collapse:collapse;border:1px solid black;text-align:center">总体积</th>
+                  <th style="border-collapse:collapse;border:1px solid black;text-align:center">面价</th>
+                  <th style="border-collapse:collapse;border:1px solid black;text-align:center">含税单价</th>
+                  <th style="border-collapse:collapse;border:1px solid black;text-align:center">税率</th>
+                  <th style="border-collapse:collapse;border:1px solid black;text-align:center">税额</th>
+                  <th style="border-collapse:collapse;border:1px solid black;text-align:center">折扣额</th>
+                  <th style="border-collapse:collapse;border:1px solid black;text-align:center">价税合计</th>
+                  <th style="border-collapse:collapse;border:1px solid black;text-align:center">到货日期</th>
+                  <th style="border-collapse:collapse;border:1px solid black;text-align:center">特价项目</th>
+                  <th style="border-collapse:collapse;border:1px solid black;text-align:center">分录备注</th>
+                  <th
+                    style="border-collapse:collapse;border:1px solid black;text-align:center"
+                  >最终无税单价</th>
+                  <th
+                    style="border-collapse:collapse;border:1px solid black;text-align:center"
+                  >最终无税金额</th>
+                  <th
+                    style="border-collapse:collapse;border:1px solid black;text-align:center"
+                  >最终含税单价</th>
+                  <th
+                    style="border-collapse:collapse;border:1px solid black;text-align:center"
+                  >最终含税合计</th>
+                </thead>
+                <tbody>
+                  <tr
+                    v-for="(item,index) in listPre"
+                    v-bind:key="index"
+                    style="border:1px solid black;"
+                  >
+                    <td
+                      style="border:1px solid black;"
+                      v-for="(value,key) in item"
+                      v-bind:key="key"
+                    >{{value}}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </fieldset>
+          </legend>
+        </div>
+      </div>
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="dialogPreviewVisible = false">关闭</el-button>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
@@ -527,7 +618,8 @@ import {
   buildU8So,
   delPreSell,
   auditPresell,
-  unAuditPresell
+  unAuditPresell,
+  GetPreviewData
 } from "@/api/presell";
 import waves from "@/directive/waves"; // Waves directive
 import Pagination from "@/components/Pagination"; // Secondary package based on el-pagination
@@ -590,14 +682,14 @@ export default {
         FTaxPrice2: 0.0,
         FSum2: 0.0,
         FVolume: 0,
-        FTotalVolume: 0,
+        FTotalVolume: 0
       },
       rules: {
         FBillNo: [
           { required: true, message: "单号不可无空!", trigger: "change" }
         ],
         FCusName: [
-          { required: true, message: "客户不可无空!", trigger: "change" }
+          { required: true, message: "开单客户不可无空!", trigger: "change" }
         ],
         FSTCode: [
           { required: true, message: "销售类型不可无空!", trigger: "change" }
@@ -660,7 +752,11 @@ export default {
           label: `最终价税合计`,
           fieldname: `FSum2`
         }
-      ]
+      ],
+      dialogPreviewVisible: false,
+      orderFormPre: {},
+      listPre: [],
+      summary: {}
     };
   },
   watch: {
@@ -699,7 +795,7 @@ export default {
     }
   },
   methods: {
-     transSearch(val){
+    transSearch(val) {
       this.listQuery.searchword = val;
     },
     changeCus(value) {
@@ -945,18 +1041,19 @@ export default {
       if (this.beforSaveForm()) {
         this.$refs["orderForm"].validate(valid => {
           if (valid) {
-            const postForm = Object.assign(
-              {},
-              { state: this.formStatus },
-              { form: this.orderForm },
-              { list: this.list }
-            );
             this.$confirm(`此操作将提交您的编辑, 是否继续?`, "提示", {
               confirmButtonText: "确定",
               cancelButtonText: "取消",
               type: "warning"
             })
               .then(() => {
+                this.list = this.list.filter(f => f.FInvCode != "");
+                const postForm = Object.assign(
+                  {},
+                  { state: this.formStatus },
+                  { form: this.orderForm },
+                  { list: this.list }
+                );
                 savePreSell(postForm)
                   .then(response => {
                     const { data, message, state } = response.data;
@@ -1100,6 +1197,57 @@ export default {
           duration: 2000
         });
       }
+    },
+     PreviewBill() {
+      GetPreviewData({
+        id: this.orderForm.FID
+      })
+        .then(response => {
+          const { data, state, message } = response.data;
+          if (state === `success`) {
+            const { form, list } = data;
+            delete form.FID;
+            this.orderFormPre = form;
+            var summary_qty = 0;
+            var summary_volumn = 0;
+            var summary_totalvolumn = 0;
+            var summary_taxamount = 0;
+            var summary_sum = 0;
+            list.forEach(item => {
+              delete item.FID;
+              delete item.FRowState;
+              summary_qty = Calc.sum(summary_qty, item.FQty);
+              summary_volumn = Calc.sum(summary_volumn, item.FVolume);
+              summary_totalvolumn = Calc.sum(
+                summary_totalvolumn,
+                item.FTotalVolume
+              );
+              summary_taxamount = Calc.sum(summary_taxamount, item.FTaxAmount);
+              summary_sum = Calc.sum(summary_sum, item.FSum);
+            });
+            let temp = { ...[...list].pop() };
+            for (const key in temp) {
+              temp[key] = "";
+            }
+            temp.FInvCode = "合计";
+            temp.FQty = summary_qty;
+            temp.FVolume = summary_volumn;
+            temp.FTotalVolume = summary_totalvolumn;
+            temp.FTaxAmount = summary_taxamount;
+            temp.FSum = summary_sum;
+
+            this.listPre = [...list, temp];
+          }
+          this.btnIsLoading = false;
+          return this.$notify({
+            title: state == `success` ? "成功" : "错误",
+            message: message,
+            type: state,
+            duration: 2000
+          });
+        })
+        .catch(() => {});
+      this.dialogPreviewVisible = !this.dialogPreviewVisible;
     },
     BuildSo() {
       if (this.orderForm.FStatus == `1`) {
@@ -1274,11 +1422,13 @@ export default {
       //   this.orderForm.FSTCode = [...data.items].shift().cstcode;
     });
     this.entryForm.FTaxRate = this.orderForm.FTaxRate;
-    this.list.push(
-      Object.assign({}, this.entryForm, {
-        FNo: this.list.length + 1
-      })
-    );
+    for (let index = 1; index < 6; index++) {
+      this.list.push(
+        Object.assign({}, this.entryForm, {
+          FNo: index
+        })
+      );
+    }
   },
   computed: {
     showsummary: function() {
