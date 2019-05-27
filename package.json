@@ -64,6 +64,7 @@
     "vue-splitpane": "1.0.2",
     "vuedraggable": "^2.16.0",
     "vuex": "3.0.1",
+    "webpack-bundle-analyzer": "^3.3.2",
     "xlsx": "^0.11.16"
   },
   "devDependencies": {
@@ -120,7 +121,6 @@
     "vue-style-loader": "4.1.2",
     "vue-template-compiler": "2.5.17",
     "webpack": "4.16.5",
-    "webpack-bundle-analyzer": "2.13.1",
     "webpack-cli": "3.1.0",
     "webpack-dev-server": "3.1.14",
     "webpack-merge": "4.1.4"
