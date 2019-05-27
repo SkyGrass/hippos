@@ -631,7 +631,7 @@ import {
   unAuditPresell,
   GetPreviewData
 } from "@/api/presell";
-import waves from "@/directive/waves"; // Waves directive
+import waves from "@/directive/waves"; // Waves directive  sadsas
 import Pagination from "@/components/Pagination"; // Secondary package based on el-pagination
 import permission from "@/directive/permission/index.js"; // 权限判断指令
 import elDragDialog from "@/directive/el-dragDialog"; // base on element-ui
